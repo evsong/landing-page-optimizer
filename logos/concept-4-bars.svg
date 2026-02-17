@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" fill="none">
+  <!-- Concept 4: Abstract bar chart + page (data-driven feel) -->
+  <!-- Three ascending bars -->
+  <rect x="6" y="34" width="8" height="18" rx="2" fill="#0EA5E9" opacity="0.4"/>
+  <rect x="18" y="24" width="8" height="28" rx="2" fill="#0EA5E9" opacity="0.65"/>
+  <rect x="30" y="10" width="8" height="42" rx="2" fill="#0EA5E9"/>
+  <!-- Upward arrow -->
+  <path d="M 46 40 L 46 16 L 40 24" stroke="#06B6D4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 46 16 L 52 24" stroke="#06B6D4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Wordmark -->
+  <text x="62" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="white">Landing</text>
+  <text x="62" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#0EA5E9">Optimizer</text>
+</svg>

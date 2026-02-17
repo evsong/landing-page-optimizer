@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  FREE
+  PRO
+  AGENCY
+}
+
+model User {
+  id                   String             @id @default(cuid())
+  email                String             @unique
+  name                 String?
+  image                String?
+  emailVerified        DateTime?
+  plan                 Plan               @default(FREE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  analysisCount        Int                @default(0)
+  monthResetAt         DateTime           @default(now())
+  reports              AnalysisReport[]
+  comparisons          ComparisonReport[]
+  accounts             Account[]
+  sessions             Session[]
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model AnalysisReport {
+  id                  String   @id @default(cuid())
+  url                 String
+  overallScore        Float
+  letterGrade         String
+  structureScore      Float
+  designScore         Float?
+  copyScore           Float?
+  conversionScore     Float
+  performanceScore    Float
+  seoScore            Float
+  benchmarkScore      Float?
+  accessibilityPenalty Float?
+  frontendQualityIssues Json?
+  industry            String?
+  issues              Json
+  suggestions         Json
+  copyRewrites        Json?
+  lighthouseData      Json
+  pa11yData           Json?
+  harData             Json?
+  extendedMetrics     Json?
+  screenshotUrl       String?
+  mobileScreenshotUrl String?
+  userId              String?
+  user                User?    @relation(fields: [userId], references: [id])
+  createdAt           DateTime @default(now())
+
+  @@index([url])
+  @@index([userId])
+}
+
+model ComparisonReport {
+  id        String   @id @default(cuid())
+  urlA      String
+  urlB      String
+  reportAId String
+  reportBId String
+  summary   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

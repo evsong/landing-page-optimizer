@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" fill="none">
+  <!-- Concept 2: Gauge/Speedometer with page -->
+  <!-- Gauge arc -->
+  <path d="M 8 44 A 22 22 0 0 1 52 44" stroke="#1e293b" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M 8 44 A 22 22 0 0 1 44 22" stroke="url(#gauge-grad)" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <defs>
+    <linearGradient id="gauge-grad" x1="8" y1="44" x2="44" y2="22">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="40%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <!-- Needle -->
+  <line x1="30" y1="42" x2="42" y2="26" stroke="#06B6D4" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="30" cy="42" r="3" fill="#06B6D4"/>
+  <!-- Score text -->
+  <text x="30" y="56" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="600" fill="#94a3b8">92</text>
+  <!-- Wordmark -->
+  <text x="64" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="white">Landing</text>
+  <text x="64" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#06B6D4">Grade</text>
+</svg>

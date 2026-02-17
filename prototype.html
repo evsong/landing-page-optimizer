@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PageScore — AI Landing Page Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* === RESET + VARIABLES === */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--bg-card:#111111;--bg-card-hover:#161616;
+  --border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);
+  --cyan:#6366f1;--sky:#818cf8;--green:#22c55e;--yellow:#f59e0b;--red:#ef4444;
+  --text:#ededed;--text-2:#888888;--text-3:#555555;
+  --font-display:'Inter',-apple-system,sans-serif;--font-body:'Inter',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --radius:14px;--radius-sm:10px;--radius-xs:6px;
+  --glow:none;
+}
+html{scroll-behavior:smooth;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.6}
+body{background:var(--bg);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+a{color:var(--cyan);text-decoration:none}
+button{font-family:var(--font-body);cursor:pointer;border:none;outline:none}
+img{max-width:100%}
+/* === LAYOUT === */
+.container{max-width:1120px;margin:0 auto;padding:0 24px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+/* === TYPOGRAPHY === */
+h1,h2,h3{font-family:var(--font-display);font-weight:600;line-height:1.05;letter-spacing:-0.06em}
+h1{font-size:clamp(3.5rem,6vw,5rem)}
+h2{font-size:clamp(1.6rem,3vw,2.2rem)}
+h3{font-size:1.1rem;font-weight:500}
+.label{font-size:0.7rem;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-3)}
+.stat-val,.score-num,.price-amount,.dim-bar-score{font-family:var(--font-mono);letter-spacing:-0.05em}
+/* === BACKGROUND === */
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;opacity:0.03;mask-image:radial-gradient(circle at center,black 0%,transparent 70%)}
+.bg-grain{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.25}
+.bg-grain::before{content:'';position:absolute;inset:-50%;width:200%;height:200%;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-size:128px 128px}
+.bg-vignette{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at center,transparent 50%,rgba(0,0,0,0.4) 100%)}
+/* === NAV === */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,10,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-brand{display:flex;align-items:center;gap:10px;cursor:pointer}
+.nav-logo-text{font-family:var(--font-display);font-weight:800;font-size:1.2rem;background:linear-gradient(135deg,var(--cyan),var(--sky));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-tabs{display:flex;gap:2px;background:rgba(255,255,255,0.04);border-radius:8px;padding:3px}
+.nav-tab{padding:6px 16px;border-radius:6px;font-size:0.85rem;font-weight:500;color:var(--text-3);background:none;transition:all 0.2s}
+.nav-tab:hover{color:var(--text-2)}
+.nav-tab.active{color:var(--text);background:rgba(255,255,255,0.08)}
+.nav-actions{display:flex;gap:8px;align-items:center}
+/* === BUTTONS === */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-size:0.9rem;font-weight:600;transition:all 0.2s}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--sky));color:#fff;box-shadow:0 2px 12px rgba(6,182,212,0.25)}
+.btn-primary:hover{box-shadow:0 4px 24px rgba(6,182,212,0.4);transform:translateY(-1px)}
+.btn-sm{padding:7px 14px;font-size:0.82rem}
+.btn-ghost{background:none;color:var(--text-2);padding:8px 14px}
+.btn-ghost:hover{color:var(--text)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text-2);border-radius:var(--radius-sm)}
+.btn-outline:hover{border-color:var(--border-hover);color:var(--text)}
+.btn-lg{padding:14px 32px;font-size:1rem;border-radius:var(--radius)}
+/* === CARDS === */
+.card{background:linear-gradient(180deg,rgba(255,255,255,0.03) 0%,rgba(255,255,255,0) 100%);border:1px solid transparent;border-radius:var(--radius);padding:24px;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);position:relative;box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.06)}
+.card::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.card:hover{background:linear-gradient(180deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0) 100%);box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.08),0 4px 20px rgba(0,0,0,0.4);transform:translateY(-2px);border-color:rgba(255,255,255,0.2);transition:all 0.3s cubic-bezier(0.25,0.8,0.25,1)}
+.card-glass{background:rgba(17,17,17,0.6);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:var(--radius)}
+/* === BADGES === */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
+.badge-cyan{background:rgba(6,182,212,0.12);color:var(--cyan)}
+.badge-green{background:rgba(34,197,94,0.12);color:var(--green)}
+.badge-yellow{background:rgba(245,158,11,0.12);color:var(--yellow)}
+.badge-red{background:transparent;border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0}
+.badge-pro{background:linear-gradient(135deg,rgba(6,182,212,0.15),rgba(14,165,233,0.15));color:var(--cyan);border:1px solid rgba(6,182,212,0.2)}
+.badge-agency{background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(139,92,246,0.15));color:#a855f7;border:1px solid rgba(168,85,247,0.2)}
+/* === INPUTS === */
+.input{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;color:var(--text);font-size:0.95rem;font-family:var(--font-body);width:100%;transition:border-color 0.2s}
+.input:focus{outline:none;border-color:rgba(6,182,212,0.4);box-shadow:0 0 0 3px rgba(6,182,212,0.08)}
+.input::placeholder{color:var(--text-3)}
+/* === UTILITIES === */
+.text-sm{font-size:0.85rem}.text-xs{font-size:0.75rem}
+.text-cyan{color:var(--cyan)}.text-green{color:var(--green)}.text-yellow{color:var(--yellow)}.text-red{color:var(--red)}
+.text-muted{color:var(--text-2)}.text-dim{color:var(--text-3)}
+.mt-1{margin-top:8px}.mt-2{margin-top:16px}.mt-3{margin-top:24px}.mt-4{margin-top:32px}.mt-6{margin-top:48px}
+.mb-1{margin-bottom:8px}.mb-2{margin-bottom:16px}.mb-3{margin-bottom:24px}
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-1{gap:8px}.gap-2{gap:16px}.gap-3{gap:24px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.grid-3{display:grid;grid-template-columns:1.2fr 0.9fr 0.9fr;gap:16px}
+.grid-7{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+/* === PAGES === */
+.page{display:none;position:relative;z-index:1;padding-top:60px}
+.page.active{display:block}
+/* === FOOTER === */
+.footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:48px 0 24px;margin-top:80px}
+.footer-inner{display:flex;justify-content:space-between;gap:40px}
+.footer-links{display:flex;gap:64px}
+.footer-links a{display:block;color:var(--text-3);font-size:0.85rem;margin-bottom:6px;transition:color 0.2s}
+.footer-links a:hover{color:var(--text)}
+/* === SECTION === */
+.section{padding:120px 0}
+.section-header{text-align:center;max-width:640px;margin:0 auto 48px}
+/* === HERO === */
+.hero{padding:180px 0 120px;text-align:center;position:relative}
+.hero::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(circle,rgba(99,102,241,0.15) 0%,transparent 70%);filter:blur(60px);z-index:-1;pointer-events:none}
+.hero h1{margin-bottom:24px}
+.hero h1 .gradient{background:none;-webkit-text-fill-color:#fff;color:#fff;text-shadow:0 0 30px rgba(255,255,255,0.1)}
+.hero-sub{color:var(--text-2);font-size:1.15rem;max-width:520px;margin:0 auto 48px;line-height:1.7;font-weight:300}
+.hero-input{display:flex;gap:8px;max-width:520px;margin:0 auto;position:relative;background:rgba(20,20,20,1);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.15);border-radius:100px;padding:4px 4px 4px 20px;align-items:center;transition:all 0.3s;height:56px;box-shadow:0 0 0 1px rgba(0,0,0,1),0 20px 40px -10px rgba(0,0,0,0.6)}
+.hero-input:focus-within{border-color:rgba(255,255,255,0.25);box-shadow:0 0 0 1px rgba(0,0,0,1),0 20px 40px -10px rgba(0,0,0,0.6)}
+.hero-input input{flex:1;background:none;border:none;color:#fff;font-size:0.95rem;font-family:var(--font-mono);outline:none;letter-spacing:-0.01em}
+.hero-input input::placeholder{color:var(--text-3);font-family:var(--font-mono)}
+.hero-input .btn{white-space:nowrap;flex-shrink:0;border-radius:96px;padding:0 24px;height:46px;font-weight:600;background:linear-gradient(135deg,var(--cyan),var(--sky)) !important;color:#fff !important;border:none !important;transition:all 0.2s ease;box-shadow:none !important}
+.hero-input .btn:hover{box-shadow:0 0 15px rgba(99,102,241,0.5) !important;transform:none}
+.hero-trust{margin-top:56px;color:var(--text-3);font-size:0.82rem}
+.hero-trust span{margin-bottom:14px;display:block;letter-spacing:0.02em}
+.hero-logos{display:flex;justify-content:center;gap:36px;align-items:center;margin-top:14px;opacity:0.15;transition:opacity 0.4s;filter:grayscale(100%)}
+.hero-logos:hover{opacity:0.3}
+.hero-logos svg{height:20px}
+/* === DIMENSIONS === */
+.grid-7{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:rgba(255,255,255,0.03);border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+.dim-card{text-align:center;padding:28px 16px;background:var(--bg);transition:all 0.35s cubic-bezier(0.4,0,0.2,1);position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06),inset 0 1px 0 0 rgba(255,255,255,0.05)}
+.dim-card:hover{background:rgba(255,255,255,0.02)}
+.dim-icon{width:32px;height:32px;border-radius:0;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;background:transparent;border:none;transition:all 0.3s}
+.dim-icon svg{stroke:#888;stroke-width:1.5;transition:all 0.3s;width:20px;height:20px;opacity:0.7}
+.dim-card:hover .dim-icon svg{stroke:#fff;opacity:1;filter:drop-shadow(0 0 8px rgba(255,255,255,0.5))}
+.dim-card h3{font-size:0.9rem;margin-bottom:6px}
+.dim-card p{font-size:0.78rem;color:var(--text-3);line-height:1.5}
+/* === HOW IT WORKS === */
+.steps{display:flex;gap:0;text-align:left;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg-card)}
+.steps::before{display:none}
+.step{text-align:left;padding:24px;position:relative;z-index:1;flex:1;border-right:1px solid var(--border)}
+.step:last-child{border-right:none}
+.step-num{width:auto;height:auto;border-radius:0;display:block;margin:0 0 8px;font-family:var(--font-mono);font-weight:500;font-size:0.7rem;background:none;color:var(--cyan);border:none;opacity:0.8;text-align:left}
+.step:hover .step-num{background:none;box-shadow:none;transform:none}
+.step h3{margin-bottom:8px}
+.step p{color:var(--text-2);font-size:0.88rem}
+/* === PRICING === */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.price-card{padding:32px 28px;border-radius:var(--radius);background:var(--bg-card);border:1px solid var(--border);position:relative;transition:all 0.35s cubic-bezier(0.4,0,0.2,1)}
+.price-card:hover{border-color:rgba(255,255,255,0.2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:all 0.3s cubic-bezier(0.25,0.8,0.25,1)}
+.price-card.popular{border-color:rgba(255,255,255,0.1);background:#000;position:relative;transform:scale(1.04)}
+.price-card.popular::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)}
+.price-card.popular:hover{transform:scale(1.04) translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,0.4)}
+.price-card.popular::before{content:'Most Popular';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--cyan),var(--sky));color:#fff;font-size:0.7rem;font-weight:700;padding:4px 16px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em;box-shadow:0 4px 16px rgba(6,182,212,0.3)}
+.price-name{font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin-bottom:4px}
+.price-amount{font-family:var(--font-display);font-weight:800;font-size:2.4rem;margin:12px 0 4px}
+.price-amount span{font-size:0.9rem;font-weight:400;color:var(--text-3)}
+.price-desc{color:var(--text-3);font-size:0.82rem;margin-bottom:20px}
+.price-features{list-style:none;margin-bottom:24px}
+.price-features li{padding:6px 0;font-size:0.85rem;color:var(--text-2);display:flex;align-items:center;gap:8px}
+.price-features li::before{content:'';width:16px;height:16px;border-radius:50%;background:rgba(34,197,94,0.12);flex-shrink:0;display:flex;align-items:center;justify-content:center;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center}
+/* === FAQ === */
+summary{list-style:none}
+summary::-webkit-details-marker{display:none}
+.faq-item{border-bottom:1px solid var(--border);overflow:hidden}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:20px 0;cursor:pointer;font-weight:600;font-size:0.95rem;color:var(--text);transition:color 0.2s;background:none;width:100%;text-align:left}
+.faq-q:hover{color:var(--cyan)}
+.faq-q svg{transition:transform 0.3s;flex-shrink:0;color:var(--text-3)}
+.faq-item.open .faq-q svg{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding 0.35s ease;color:var(--text-2);font-size:0.9rem;line-height:1.7}
+.faq-item.open .faq-a{max-height:200px;padding-bottom:20px}
+/* === REPORT === */
+.report-header{padding:48px 0 32px;text-align:center}
+.score-ring-wrap{position:relative;width:200px;height:200px;margin:0 auto 20px}
+.score-ring-wrap svg{width:200px;height:200px;transform:rotate(-90deg)}
+.score-ring-wrap .track{fill:none;stroke:rgba(255,255,255,0.04);stroke-width:4}
+.score-ring-wrap .fill{fill:none;stroke-width:4;stroke-linecap:square;transition:stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)}
+.score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-num{font-family:var(--font-display);font-weight:800;font-size:3rem;line-height:1}
+.score-grade{font-family:var(--font-display);font-weight:700;font-size:1.3rem;color:var(--yellow);margin-top:2px}
+.score-label{font-size:0.78rem;color:var(--text-3);margin-top:4px}
+.dim-bar-wrap{margin-bottom:14px}
+.dim-bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.dim-bar-name{font-size:0.85rem;font-weight:500}
+.dim-bar-score{font-family:var(--font-display);font-weight:700;font-size:0.85rem}
+.dim-bar-track{height:4px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden}
+.dim-bar-fill{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1)}
+.issue-item{padding:16px 0;background:transparent;border-bottom:1px solid rgba(255,255,255,0.04);border-radius:0;margin-bottom:0;font-size:0.85rem;display:flex;gap:10px;align-items:start}
+.issue-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:7px;box-shadow:0 0 8px currentColor}
+.suggestion-card{padding:20px;border-radius:var(--radius-sm);background:#0d0d0d;border:1px solid rgba(255,255,255,0.06);margin-bottom:12px;transition:border-color 0.2s,background 0.2s}
+.suggestion-card:hover{border-color:rgba(255,255,255,0.2);background:#111;transform:none;box-shadow:none}
+.suggestion-card .impact{font-family:var(--font-mono);font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0;opacity:0.8}
+.locked-overlay{position:relative;overflow:hidden;border-radius:var(--radius)}
+.locked-overlay::after{content:'';position:absolute;inset:0;backdrop-filter:blur(6px);background:rgba(10,10,10,0.5);z-index:2}
+.locked-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;text-align:center}
+.locked-badge .btn{margin-top:10px}
+/* === DASHBOARD === */
+.dash-stat{padding:24px;border-radius:var(--radius);background:var(--bg-card);border:1px solid var(--border);transition:all 0.3s cubic-bezier(0.25,0.8,0.25,1)}
+.dash-stat:hover{border-color:rgba(255,255,255,0.2);box-shadow:0 4px 20px rgba(0,0,0,0.4);transform:translateY(-2px)}
+.dash-stat:first-child{background:linear-gradient(145deg,var(--bg-card),rgba(255,255,255,0.03));border-color:rgba(255,255,255,0.1)}
+.dash-stat .stat-val{font-family:var(--font-mono);font-weight:800;font-size:2.4rem;margin:8px 0 2px;font-feature-settings:"tnum";letter-spacing:-0.05em;background:linear-gradient(180deg,#fff,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.history-row{display:grid;grid-template-columns:2fr 80px 60px 100px;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);font-size:0.88rem}
+.history-row:last-child{border-bottom:none}
+.history-url{color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend-chart{background:linear-gradient(180deg,var(--bg-card) 0%,rgba(99,102,241,0.02) 100%);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
+.usage-bar-track{height:2px;background:rgba(255,255,255,0.1);border-radius:1px;overflow:hidden;margin-top:8px}
+.usage-bar-fill{height:100%;background:#fff;border-radius:1px;transition:width 0.8s;box-shadow:0 0 10px rgba(255,255,255,0.5)}
+/* === RESPONSIVE === */
+@media(max-width:768px){
+  .nav-tabs,.nav-actions .btn-ghost{display:none}
+  .hero-input{flex-direction:column;padding:12px}
+  .hero-input .btn{width:100%}
+  .steps,.pricing-grid{grid-template-columns:1fr}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .footer-inner{flex-direction:column;gap:32px}
+  .footer-links{flex-direction:column;gap:24px}
+  .history-row{grid-template-columns:1fr 60px 50px 80px;font-size:0.8rem}
+  .section{padding:64px 0}
+  .hero{padding:100px 0 60px}
+}
+/* === ANIMATIONS === */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);filter:blur(4px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.anim-up{opacity:0;animation:fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards}
+.anim-up-1{animation-delay:0.06s}.anim-up-2{animation-delay:0.12s}.anim-up-3{animation-delay:0.18s}
+.anim-up-4{animation-delay:0.24s}.anim-up-5{animation-delay:0.32s}.anim-up-6{animation-delay:0.38s}
+.anim-up-7{animation-delay:0.44s}.anim-up-8{animation-delay:0.5s}
+.anim-fade{opacity:0;animation:fadeIn 0.5s ease forwards}
+.shimmer{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.04) 50%,transparent 100%);background-size:200% 100%;animation:shimmer 2s infinite}
+/* Scroll-triggered */
+.reveal{opacity:0;transform:translateY(28px);filter:blur(4px);transition:opacity 0.4s cubic-bezier(0.16,1,0.3,1),transform 0.4s cubic-bezier(0.16,1,0.3,1),filter 0.4s cubic-bezier(0.16,1,0.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0);filter:blur(0)}
+.reveal-scale{opacity:0;transform:scale(0.96);filter:blur(4px);transition:opacity 0.4s ease,transform 0.4s cubic-bezier(0.16,1,0.3,1),filter 0.4s ease}
+.reveal-scale.visible{opacity:1;transform:scale(1);filter:blur(0)}
+.reveal-delay-1{transition-delay:0.08s}.reveal-delay-2{transition-delay:0.16s}.reveal-delay-3{transition-delay:0.24s}
+.reveal-delay-4{transition-delay:0.32s}.reveal-delay-5{transition-delay:0.4s}.reveal-delay-6{transition-delay:0.48s}.reveal-delay-7{transition-delay:0.56s}
+</style>
+</head>
+<body>
+<!-- Background texture -->
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-grain" aria-hidden="true"></div>
+<div class="bg-vignette" aria-hidden="true"></div>
+
+<!-- Navigation -->
+<nav class="nav" role="navigation">
+  <div class="container nav-inner">
+    <div class="nav-brand" onclick="showPage('landing')">
+      <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#0f172a"/><path d="M 12 46 A 22 22 0 0 1 52 46" stroke="#1e293b" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M 12 46 A 22 22 0 0 1 46 24" stroke="url(#ng)" stroke-width="6" stroke-linecap="round" fill="none"/><defs><linearGradient id="ng" x1="12" y1="46" x2="46" y2="24"><stop offset="0%" stop-color="#EF4444"/><stop offset="40%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs><line x1="32" y1="44" x2="44" y2="28" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="44" r="4" fill="#6366f1"/></svg>
+      <span class="nav-logo-text">PageScore</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-page="landing">Home</button>
+      <button class="nav-tab" data-page="report">Report</button>
+      <button class="nav-tab" data-page="dashboard">Dashboard</button>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost">Sign In</button>
+      <button class="btn btn-primary btn-sm">Get Started</button>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE: LANDING -->
+<main id="page-landing" class="page active">
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1 class="anim-up anim-up-2">How good is your<br><span class="gradient">landing page?</span></h1>
+    <p class="hero-sub anim-up anim-up-3">AI-powered analysis across 7 dimensions.<br>Get your score in 30 seconds.</p>
+    <div class="hero-input anim-up anim-up-4">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <input type="url" placeholder="https://your-landing-page.com" aria-label="Enter URL to analyze">
+      <button class="btn btn-primary" onclick="showPage('report')">Analyze Free</button>
+    </div>
+    <div class="hero-trust anim-up anim-up-5">
+      <span>Trusted by 2,000+ marketers and founders</span>
+      <div class="hero-logos">
+        <svg viewBox="0 0 80 20"><text x="0" y="16" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#475569">Acme</text></svg>
+        <svg viewBox="0 0 80 20"><text x="0" y="16" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#475569">Vercel</text></svg>
+        <svg viewBox="0 0 80 20"><text x="0" y="16" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#475569">Linear</text></svg>
+        <svg viewBox="0 0 80 20"><text x="0" y="16" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#475569">Stripe</text></svg>
+        <svg viewBox="0 0 80 20"><text x="0" y="16" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#475569">Notion</text></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 Dimensions -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-header">
+      <p class="label text-cyan mb-1">7 Dimensions</p>
+      <h2>Every angle, one score</h2>
+      <p class="text-muted mt-1">We analyze your landing page across 7 critical dimensions that determine conversion success.</p>
+    </div>
+    <div class="grid-7">
+      <div class="dim-card reveal reveal-delay-1">
+        <div class="dim-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></div>
+        <h3>Structure</h3><p>Hero, CTA, social proof, FAQ completeness</p>
+      </div>
+      <div class="dim-card reveal reveal-delay-2">
+        <div class="dim-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+        <h3>Design</h3><p>Visual hierarchy, color harmony, spacing</p>
+      </div>
+      <div class="dim-card reveal reveal-delay-3">
+        <div class="dim-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+        <h3>Copy</h3><p>Headline clarity, value prop, CTA text</p>
+      </div>
+      <div class="dim-card reveal reveal-delay-4">
+        <div class="dim-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <h3>Conversion</h3><p>CTA placement, form friction, trust signals</p>
+      </div>
+      <div class="dim-card reveal reveal-delay-5">
+        <div class="dim-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <h3>Performance</h3><p>Core Web Vitals, load speed, TBT</p>
+      </div>
+      <div class="dim-card reveal reveal-delay-6">
+        <div class="dim-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
+        <h3>SEO</h3><p>Meta tags, headings, alt text, schema</p>
+      </div>
+      <div class="dim-card reveal reveal-delay-7">
+        <div class="dim-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div>
+        <h3>Benchmark</h3><p>Industry comparison, percentile rank</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="section" style="background:rgba(255,255,255,0.01)">
+  <div class="container">
+    <div class="section-header">
+      <p class="label text-cyan mb-1">How It Works</p>
+      <h2>Three steps to a better page</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal reveal-delay-1"><div class="step-num">01_ANALYZE</div><h3>Paste any URL</h3><p>We simulate a real user visit to capture load speed, design, and copy.</p></div>
+      <div class="step reveal reveal-delay-2"><div class="step-num">02_DIAGNOSE</div><h3>Identify Leaks</h3><p>Find exactly where you're losing customers (and revenue).</p></div>
+      <div class="step reveal reveal-delay-3"><div class="step-num">03_OPTIMIZE</div><h3>Fix &amp; Scale</h3><p>Get AI-rewritten copy and code snippets to boost conversion.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="section-header">
+      <p class="label text-cyan mb-1">Pricing</p>
+      <h2>Start free, scale as you grow</h2>
+      <p class="text-muted mt-1">No credit card required for the free plan.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card reveal-scale reveal-delay-1">
+        <p class="price-name">Free</p>
+        <p class="price-amount">$0<span> /mo</span></p>
+        <p class="price-desc">Try it out — 3 analyses per month.</p>
+        <ul class="price-features">
+          <li>3 analyses / month</li>
+          <li>7-dimension scoring</li>
+          <li>Basic issue summary</li>
+          <li>Score history (last 3)</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%">Get Started</button>
+      </div>
+      <div class="price-card popular reveal-scale reveal-delay-2">
+        <p class="price-name">Pro</p>
+        <p class="price-amount">$5.99<span> /mo</span></p>
+        <p class="price-desc">Unlimited analyses with AI suggestions.</p>
+        <ul class="price-features">
+          <li>Unlimited analyses</li>
+          <li>AI actionable suggestions</li>
+          <li>Copy rewrite alternatives</li>
+          <li>Full history &amp; trends</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%">Upgrade to Pro</button>
+      </div>
+      <div class="price-card reveal-scale reveal-delay-3">
+        <p class="price-name">Agency</p>
+        <p class="price-amount">$49<span> /mo</span></p>
+        <p class="price-desc">Automate your client reporting.</p>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li style="color:#fff;font-weight:500">White-label PDF Reports</li>
+          <li>Competitor benchmarks</li>
+          <li>API access for integrations</li>
+          <li>Bulk URL analysis</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%">Start Free Trial</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="container" style="max-width:720px">
+    <div class="section-header">
+      <p class="label text-cyan mb-1">FAQ</p>
+      <h2>Common questions</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">How does PageScore analyze my landing page?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        <div class="faq-a">We use a 3-layer analysis pipeline: Puppeteer loads your page and captures a screenshot, Lighthouse audits performance and SEO, and AI Vision analyzes design quality and generates actionable suggestions. The entire process takes about 30 seconds.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What makes PageScore different from PageSpeed Insights?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        <div class="faq-a">PageSpeed only checks technical performance. PageScore analyzes 7 dimensions including copy quality, conversion optimization, and visual design — and gives you specific, actionable suggestions on what to change, not just what's wrong.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Is my landing page data kept private?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        <div class="faq-a">Yes. We only analyze publicly accessible pages. Screenshots and analysis data are stored securely and only visible to your account. We never share your data with third parties.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Can I analyze competitor landing pages?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        <div class="faq-a">Absolutely. You can analyze any public URL. Agency plan users get a dedicated side-by-side comparison feature that highlights differences across all 7 dimensions with AI-generated insights.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">How accurate is the AI scoring?<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        <div class="faq-a">Our scoring combines objective metrics (Lighthouse data, DOM analysis) with AI evaluation. Performance and SEO scores are based on industry-standard tools. Design and copy scores use Claude AI vision, calibrated against thousands of high-converting landing pages.</div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- PAGE: REPORT -->
+<main id="page-report" class="page">
+<!-- Report Header -->
+<section class="report-header">
+  <div class="container">
+    <p class="label text-cyan mb-2 anim-up anim-up-1">Analysis Complete</p>
+    <div class="score-ring-wrap anim-up anim-up-2">
+      <svg viewBox="0 0 200 200">
+        <circle class="track" cx="100" cy="100" r="85"/>
+        <circle class="fill" cx="100" cy="100" r="85" stroke="url(#scoreGrad)" stroke-dasharray="534" stroke-dashoffset="534" id="scoreRing"/>
+        <defs><linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#D97706"/></linearGradient></defs>
+      </svg>
+      <div class="score-center">
+        <div class="score-num" id="scoreNum">0</div>
+        <div class="score-grade">B+</div>
+        <div class="score-label">Overall Score</div>
+      </div>
+    </div>
+    <p class="text-muted anim-up anim-up-3" style="font-size:0.9rem">stripe.com/landing &middot; Analyzed Feb 17, 2026</p>
+  </div>
+</section>
+
+<!-- Dimension Bars -->
+<section style="padding:0 0 48px">
+  <div class="container" style="max-width:720px">
+    <h3 class="mb-3" style="font-size:1rem">Dimension Scores</h3>
+    <div id="dimBars">
+      <div class="dim-bar-wrap" data-score="85" data-color="var(--green)">
+        <div class="dim-bar-header"><span class="dim-bar-name">Structure</span><span class="dim-bar-score text-green">85</span></div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0;background:var(--green)"></div></div>
+      </div>
+      <div class="dim-bar-wrap" data-score="68" data-color="var(--yellow)">
+        <div class="dim-bar-header"><span class="dim-bar-name">Design</span><span class="dim-bar-score text-yellow">68</span></div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0;background:var(--yellow)"></div></div>
+      </div>
+      <div class="dim-bar-wrap" data-score="72" data-color="var(--yellow)">
+        <div class="dim-bar-header"><span class="dim-bar-name">Copy</span><span class="dim-bar-score text-yellow">72</span></div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0;background:var(--yellow)"></div></div>
+      </div>
+      <div class="dim-bar-wrap" data-score="65" data-color="var(--yellow)">
+        <div class="dim-bar-header"><span class="dim-bar-name">Conversion</span><span class="dim-bar-score text-yellow">65</span></div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0;background:var(--yellow)"></div></div>
+      </div>
+      <div class="dim-bar-wrap" data-score="88" data-color="var(--green)">
+        <div class="dim-bar-header"><span class="dim-bar-name">Performance</span><span class="dim-bar-score text-green">88</span></div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0;background:var(--green)"></div></div>
+      </div>
+      <div class="dim-bar-wrap" data-score="78" data-color="var(--yellow)">
+        <div class="dim-bar-header"><span class="dim-bar-name">SEO</span><span class="dim-bar-score text-yellow">78</span></div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0;background:var(--yellow)"></div></div>
+      </div>
+      <div class="dim-bar-wrap" data-score="70" data-color="var(--yellow)">
+        <div class="dim-bar-header"><span class="dim-bar-name">Benchmark</span><span class="dim-bar-score text-yellow">70</span></div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0;background:var(--yellow)"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Issues -->
+<section style="padding:0 0 48px">
+  <div class="container" style="max-width:720px">
+    <h3 class="mb-3" style="font-size:1rem">Issues Found <span class="badge badge-yellow" style="margin-left:8px">8 issues</span></h3>
+    <details class="card" style="padding:0" open>
+      <summary style="padding:16px 20px;cursor:pointer;font-weight:600;font-size:0.9rem;list-style:none;display:flex;justify-content:space-between;align-items:center">
+        <span>Conversion <span class="badge badge-red" style="margin-left:6px">3</span></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div style="padding:0 20px 16px">
+        <div class="issue-item"><div class="issue-dot" style="background:var(--red)"></div><div><strong>No CTA above the fold</strong><br><span class="text-muted text-sm">Primary call-to-action is below the first viewport. Move it into the hero section.</span></div></div>
+        <div class="issue-item"><div class="issue-dot" style="background:var(--yellow)"></div><div><strong>Form has 5 fields</strong><br><span class="text-muted text-sm">Reducing to 3 essential fields (name, email, company) can increase conversion by 20-30%.</span></div></div>
+        <div class="issue-item"><div class="issue-dot" style="background:var(--yellow)"></div><div><strong>Missing trust signals</strong><br><span class="text-muted text-sm">No security badges, customer logos, or social proof near the form.</span></div></div>
+      </div>
+    </details>
+    <details class="card mt-2" style="padding:0">
+      <summary style="padding:16px 20px;cursor:pointer;font-weight:600;font-size:0.9rem;list-style:none;display:flex;justify-content:space-between;align-items:center">
+        <span>Design <span class="badge badge-yellow" style="margin-left:6px">2</span></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div style="padding:0 20px 16px">
+        <div class="issue-item"><div class="issue-dot" style="background:var(--yellow)"></div><div><strong>Low contrast text</strong><br><span class="text-muted text-sm">Body text (#999) on white background fails WCAG AA. Use #595959 or darker.</span></div></div>
+        <div class="issue-item"><div class="issue-dot" style="background:var(--yellow)"></div><div><strong>Inconsistent spacing</strong><br><span class="text-muted text-sm">Section padding varies between 40px and 80px. Standardize to a consistent rhythm.</span></div></div>
+      </div>
+    </details>
+    <details class="card mt-2" style="padding:0">
+      <summary style="padding:16px 20px;cursor:pointer;font-weight:600;font-size:0.9rem;list-style:none;display:flex;justify-content:space-between;align-items:center">
+        <span>Copy <span class="badge badge-yellow" style="margin-left:6px">2</span></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div style="padding:0 20px 16px">
+        <div class="issue-item"><div class="issue-dot" style="background:var(--red)"></div><div><strong>Weak headline</strong><br><span class="text-muted text-sm">"Financial infrastructure for the internet" is powerful but vague for SMBs. Lead with a specific benefit or outcome.</span></div></div>
+        <div class="issue-item"><div class="issue-dot" style="background:var(--yellow)"></div><div><strong>Generic CTA text</strong><br><span class="text-muted text-sm">"Start now" is passive. Use action-oriented text like "Start accepting payments" or "See live demo".</span></div></div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- AI Suggestions -->
+<section style="padding:0 0 48px">
+  <div class="container" style="max-width:720px">
+    <h3 class="mb-3" style="font-size:1rem">AI Suggestions <span class="badge badge-cyan" style="margin-left:8px">Powered by AI</span></h3>
+    <div class="suggestion-card">
+      <div class="flex items-center justify-between mb-1">
+        <span class="impact text-red">High Impact</span>
+        <span class="badge badge-green">Quick Win</span>
+      </div>
+      <h3 style="margin:8px 0 6px">Headline is too abstract</h3>
+      <p class="text-muted text-sm" style="line-height:1.7">Current headline "Financial infrastructure for the internet" is powerful but vague for SMBs. It focuses on <em>what it is</em>, not <em>what it does</em>.</p>
+      <div style="margin-top:12px;padding:12px 16px;background:rgba(99,102,241,0.06);border-radius:var(--radius-xs);border-left:3px solid var(--cyan)">
+        <p class="text-xs text-dim" style="margin-bottom:4px">AI Rewrite (Benefit-Driven):</p>
+        <p class="text-sm" style="color:var(--text)">"Accept payments from anywhere, in minutes — without writing code."</p>
+      </div>
+    </div>
+    <div class="suggestion-card">
+      <div class="flex items-center justify-between mb-1">
+        <span class="impact text-red">High Impact</span>
+      </div>
+      <h3 style="margin:8px 0 6px">No social proof above the fold</h3>
+      <p class="text-muted text-sm" style="line-height:1.7">Pages with trust signals in the hero section convert 15-20% better. Add customer logos, a testimonial quote, or a metric like "Powering 3.1M+ businesses".</p>
+    </div>
+    <div class="suggestion-card">
+      <div class="flex items-center justify-between mb-1">
+        <span class="impact text-yellow">Medium Impact</span>
+      </div>
+      <h3 style="margin:8px 0 6px">Reduce form fields from 5 to 3</h3>
+      <p class="text-muted text-sm" style="line-height:1.7">Every additional form field reduces conversion by ~7%. Keep only name, email, and company. Collect phone and role after signup.</p>
+    </div>
+    <!-- Locked suggestions -->
+    <div class="locked-overlay" style="min-height:140px">
+      <div class="suggestion-card" style="opacity:0.3;pointer-events:none">
+        <div class="flex items-center justify-between mb-1"><span class="impact text-yellow">Medium Impact</span></div>
+        <h3 style="margin:8px 0 6px">Optimize page load sequence</h3>
+        <p class="text-muted text-sm">Defer non-critical JavaScript and lazy-load images below the fold to improve LCP by 40%.</p>
+      </div>
+      <div class="locked-badge">
+        <div class="badge badge-pro" style="font-size:0.8rem;padding:6px 16px">PRO</div>
+        <p class="text-sm text-muted" style="margin-top:8px">Unlock all AI suggestions</p>
+        <button class="btn btn-primary btn-sm">Upgrade to Pro — $5.99/mo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Copy Rewrite (Locked) -->
+<section style="padding:0 0 48px">
+  <div class="container" style="max-width:720px">
+    <h3 class="mb-3" style="font-size:1rem">Copy Rewrites <span class="badge badge-pro" style="margin-left:8px">PRO</span></h3>
+    <div class="locked-overlay" style="min-height:180px">
+      <div style="padding:20px;opacity:0.3">
+        <div class="card" style="margin-bottom:12px">
+          <p class="text-xs text-dim mb-1">Original Headline</p>
+          <p style="font-size:1.1rem;font-weight:600">"Financial infrastructure for the internet"</p>
+        </div>
+        <div class="card"><p class="text-xs text-dim mb-1">AI Rewrite Option 1</p><p>"Accept payments from anywhere, in minutes — no code required."</p></div>
+      </div>
+      <div class="locked-badge">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <p class="text-sm" style="color:var(--text);font-weight:600;margin-top:8px">Unlock AI Copy Rewrites</p>
+        <p class="text-xs text-muted" style="margin-top:4px">Get 3 alternative versions for every weak headline and CTA</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px">Upgrade to Pro</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Report Actions -->
+<section style="padding:0 0 48px">
+  <div class="container" style="max-width:720px">
+    <div class="flex gap-2" style="flex-wrap:wrap">
+      <button class="btn btn-outline" style="opacity:0.5;pointer-events:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Export PDF <span class="badge badge-agency" style="margin-left:4px">Agency</span>
+      </button>
+      <button class="btn btn-outline" style="opacity:0.5;pointer-events:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Compare with Competitor <span class="badge badge-agency" style="margin-left:4px">Agency</span>
+      </button>
+      <button class="btn btn-outline" onclick="showPage('landing')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><polyline points="21 3 21 9 15 9"/></svg>
+        Analyze Another
+      </button>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- PAGE: DASHBOARD -->
+<main id="page-dashboard" class="page">
+<!-- Dashboard Header -->
+<section style="padding:48px 0 0">
+  <div class="container">
+    <div class="flex items-center justify-between mb-3" style="flex-wrap:wrap;gap:16px">
+      <div>
+        <h2 style="font-size:1.5rem">Dashboard</h2>
+        <p class="text-muted text-sm mt-1">Track your landing page performance over time.</p>
+      </div>
+      <div class="flex gap-1 items-center">
+        <span style="font-size:0.7rem;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);color:var(--text-3);font-weight:500;letter-spacing:0.05em;text-transform:uppercase">Free Plan</span>
+        <button class="btn btn-primary btn-sm">Upgrade</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Row -->
+<section style="padding:24px 0">
+  <div class="container">
+    <div class="grid-3">
+      <div class="dash-stat anim-up anim-up-1">
+        <p class="label">Analyses This Month</p>
+        <p class="stat-val">2 <span class="text-sm text-dim">/ 3</span></p>
+        <div class="usage-bar-track"><div class="usage-bar-fill" style="width:66%"></div></div>
+        <p class="text-xs text-dim mt-1">1 remaining — resets Mar 1</p>
+      </div>
+      <div class="dash-stat anim-up anim-up-2">
+        <p class="label">Average Score</p>
+        <p class="stat-val text-yellow">71</p>
+        <p class="text-xs text-dim mt-1">Across 5 analyses</p>
+      </div>
+      <div class="dash-stat anim-up anim-up-3">
+        <p class="label">Best Score</p>
+        <p class="stat-val text-green">88</p>
+        <p class="text-xs text-dim mt-1">stripe.com/payments</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Score Trend -->
+<section style="padding:0 0 32px">
+  <div class="container">
+    <div class="trend-chart">
+      <div class="flex items-center justify-between mb-2">
+        <div>
+          <h3 style="font-size:0.95rem">Score Trend</h3>
+          <p class="text-xs text-dim">stripe.com/landing — 3 analyses</p>
+        </div>
+        <span class="badge badge-green">+8 pts</span>
+      </div>
+      <svg viewBox="0 0 600 120" style="width:100%;height:120px" aria-label="Score trend chart">
+        <!-- Grid lines -->
+        <line x1="60" y1="10" x2="580" y2="10" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="60" y1="40" x2="580" y2="40" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="60" y1="70" x2="580" y2="70" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <line x1="60" y1="100" x2="580" y2="100" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+        <!-- Y labels -->
+        <text x="45" y="14" text-anchor="end" fill="#64748b" font-size="11" font-family="Inter, sans-serif">90</text>
+        <text x="45" y="44" text-anchor="end" fill="#64748b" font-size="11" font-family="Inter, sans-serif">75</text>
+        <text x="45" y="74" text-anchor="end" fill="#64748b" font-size="11" font-family="Inter, sans-serif">60</text>
+        <text x="45" y="104" text-anchor="end" fill="#64748b" font-size="11" font-family="Inter, sans-serif">45</text>
+        <!-- Area fill -->
+        <path d="M120,76 L320,52 L520,28 L520,100 L120,100 Z" fill="url(#trendFill)" opacity="0.06"/>
+        <defs><linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.1"/><stop offset="100%" stop-color="#6366f1" stop-opacity="0"/></linearGradient></defs>
+        <!-- Line -->
+        <polyline points="120,76 320,52 520,28" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px rgba(99,102,241,0.4))"/>
+        <!-- Projected score (dashed) -->
+        <line x1="520" y1="28" x2="580" y2="18" stroke="var(--cyan)" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.4"/>
+        <text x="580" y="14" text-anchor="end" fill="var(--cyan)" font-size="10" font-family="Inter, sans-serif" opacity="0.5" font-weight="500">85?</text>
+        <!-- Dots -->
+        <circle cx="120" cy="76" r="5" fill="var(--bg)" stroke="var(--cyan)" stroke-width="2.5"/>
+        <circle cx="320" cy="52" r="5" fill="var(--bg)" stroke="var(--cyan)" stroke-width="2.5"/>
+        <circle cx="520" cy="28" r="5" fill="var(--cyan)" stroke="var(--cyan)" stroke-width="2.5"/>
+        <!-- Score labels -->
+        <text x="120" y="68" text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Inter, sans-serif" font-weight="600">65</text>
+        <text x="320" y="44" text-anchor="middle" fill="var(--text-2)" font-size="11" font-family="Inter, sans-serif" font-weight="600">70</text>
+        <text x="520" y="20" text-anchor="middle" fill="var(--cyan)" font-size="11" font-family="Inter, sans-serif" font-weight="700">73</text>
+        <!-- X labels -->
+        <text x="120" y="115" text-anchor="middle" fill="#64748b" font-size="10" font-family="Inter, sans-serif">Jan 28</text>
+        <text x="320" y="115" text-anchor="middle" fill="#64748b" font-size="10" font-family="Inter, sans-serif">Feb 8</text>
+        <text x="520" y="115" text-anchor="middle" fill="#64748b" font-size="10" font-family="Inter, sans-serif">Feb 17</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- History -->
+<section style="padding:0 0 48px">
+  <div class="container">
+    <h3 style="font-size:0.95rem" class="mb-2">Analysis History</h3>
+    <div class="card" style="padding:0 20px">
+      <div class="history-row" style="border-bottom:1px solid var(--border);padding-top:12px;font-weight:600;color:var(--text-3);font-size:0.78rem">
+        <span>URL</span><span>Score</span><span>Grade</span><span>Date</span>
+      </div>
+      <div class="history-row" style="cursor:pointer" onclick="showPage('report')">
+        <span class="history-url">stripe.com/landing</span>
+        <span class="text-yellow" style="font-weight:600">73</span>
+        <span class="badge badge-yellow">B+</span>
+        <span class="text-dim text-sm">Feb 17</span>
+      </div>
+      <div class="history-row" style="cursor:pointer">
+        <span class="history-url">stripe.com/payments</span>
+        <span class="text-green" style="font-weight:600">88</span>
+        <span class="badge badge-green">A</span>
+        <span class="text-dim text-sm">Feb 15</span>
+      </div>
+      <div class="history-row" style="cursor:pointer">
+        <span class="history-url">linear.app</span>
+        <span class="text-yellow" style="font-weight:600">76</span>
+        <span class="badge badge-yellow">B+</span>
+        <span class="text-dim text-sm">Feb 12</span>
+      </div>
+      <div class="history-row" style="cursor:pointer">
+        <span class="history-url">notion.so/product</span>
+        <span class="text-yellow" style="font-weight:600">69</span>
+        <span class="badge badge-yellow">B</span>
+        <span class="text-dim text-sm">Feb 8</span>
+      </div>
+      <div class="history-row" style="cursor:pointer">
+        <span class="history-url">vercel.com</span>
+        <span class="text-green" style="font-weight:600">82</span>
+        <span class="badge badge-green">A-</span>
+        <span class="text-dim text-sm">Jan 28</span>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="nav-logo-text" style="font-size:1.1rem">PageScore</span>
+      <p class="text-sm" style="color:var(--text-3);margin-top:6px">AI-powered landing page analysis.</p>
+    </div>
+    <div class="footer-links">
+      <div><p class="label" style="margin-bottom:8px">Product</p><a href="#">Features</a><a href="#">Pricing</a><a href="#">API</a></div>
+      <div><p class="label" style="margin-bottom:8px">Company</p><a href="#">About</a><a href="#">Blog</a><a href="#">Contact</a></div>
+      <div><p class="label" style="margin-bottom:8px">Legal</p><a href="#">Privacy</a><a href="#">Terms</a></div>
+    </div>
+  </div>
+  <div class="container" style="border-top:1px solid var(--border);padding-top:20px;margin-top:32px">
+    <p class="text-sm" style="color:var(--text-3);text-align:center">&copy; 2026 PageScore. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+// === PAGE NAVIGATION ===
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  if (page) {
+    page.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Re-observe reveals on new page
+    setTimeout(() => observeReveals(page), 100);
+  }
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.dataset.page === name) t.classList.add('active');
+  });
+  if (name === 'report') animateReport();
+}
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => showPage(tab.dataset.page));
+});
+
+// === SCROLL-TRIGGERED REVEALS ===
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+function observeReveals(root) {
+  (root || document).querySelectorAll('.reveal:not(.visible), .reveal-scale:not(.visible)').forEach(el => {
+    revealObserver.observe(el);
+  });
+}
+observeReveals();
+
+// === FAQ ACCORDION ===
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.parentElement;
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+// === REPORT ANIMATIONS ===
+let reportAnimated = false;
+function animateReport() {
+  if (reportAnimated) return;
+  reportAnimated = true;
+  const ring = document.getElementById('scoreRing');
+  const circumference = 2 * Math.PI * 85;
+  const score = 73;
+  const offset = circumference - (score / 100) * circumference;
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference;
+  requestAnimationFrame(() => {
+    setTimeout(() => { ring.style.strokeDashoffset = offset; }, 200);
+  });
+  // Animate score number with easing
+  const numEl = document.getElementById('scoreNum');
+  const duration = 1200;
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3); // easeOutCubic
+    numEl.textContent = Math.round(score * ease);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  // Animate dimension bars
+  document.querySelectorAll('.dim-bar-wrap').forEach((bar, i) => {
+    const s = bar.dataset.score;
+    const fill = bar.querySelector('.dim-bar-fill');
+    setTimeout(() => { fill.style.width = s + '%'; }, 400 + i * 120);
+  });
+}
+
+// === HOVER GLOW ON CARDS (cursor-following) ===
+document.querySelectorAll('.price-card, .dash-stat, .trend-chart').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.background = `radial-gradient(circle 200px at ${x}px ${y}px, rgba(6,182,212,0.04), var(--bg-card))`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.background = '';
+  });
+});
+
+// === MOBILE NAV ===
+if (window.innerWidth <= 768) {
+  let menuOpen = false;
+  const tabs = document.querySelector('.nav-tabs');
+  const brand = document.querySelector('.nav-brand');
+  if (tabs) {
+    tabs.style.display = 'none';
+    brand.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menuOpen = !menuOpen;
+      tabs.style.cssText = menuOpen
+        ? 'display:flex;position:absolute;top:60px;left:16px;right:16px;flex-direction:column;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;z-index:200'
+        : 'display:none';
+    });
+    document.addEventListener('click', () => {
+      if (menuOpen) { tabs.style.display = 'none'; menuOpen = false; }
+    });
+  }
+}
+
+// Init
+document.querySelector('.faq-item')?.classList.add('open');
+</script>
+</body>
+</html>

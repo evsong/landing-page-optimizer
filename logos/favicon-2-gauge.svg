@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Favicon 2: Gauge (compact) -->
+  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+  <path d="M 12 46 A 22 22 0 0 1 52 46" stroke="#1e293b" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M 12 46 A 22 22 0 0 1 46 24" stroke="url(#fg)" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <defs>
+    <linearGradient id="fg" x1="12" y1="46" x2="46" y2="24">
+      <stop offset="0%" stop-color="#EF4444"/>
+      <stop offset="40%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <line x1="32" y1="44" x2="44" y2="28" stroke="#06B6D4" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="44" r="4" fill="#06B6D4"/>
+</svg>
