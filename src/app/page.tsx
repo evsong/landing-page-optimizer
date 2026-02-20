@@ -35,7 +35,7 @@ export default function Home() {
       {/* Nav */}
       <Navbar />
       {/* Hero */}
-      <section className="pt-[180px] pb-[120px] text-center relative">
+      <section className="pt-[140px] pb-[80px] text-center relative">
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[radial-gradient(circle,rgba(99,102,241,0.15)_0%,transparent_70%)] blur-[60px] pointer-events-none z-[-1]" />
         <div className="max-w-[1120px] mx-auto px-6">
           <h1 className="text-[clamp(3.5rem,6vw,5rem)] font-semibold leading-[1.05] tracking-[-0.06em] mb-6 anim-up anim-up-2">
@@ -47,7 +47,7 @@ export default function Home() {
           <div className="anim-up anim-up-4"><UrlInput /></div>
           <div className="mt-14 text-[var(--text-3)] text-[0.82rem] anim-up anim-up-5">
             <span className="block mb-3.5 tracking-wide">Trusted by 2,000+ marketers and founders</span>
-            <div className="flex justify-center gap-9 items-center opacity-15 grayscale hover:opacity-30 transition-opacity">
+            <div className="flex justify-center gap-9 items-center opacity-30 grayscale hover:opacity-50 transition-opacity">
               {["Acme", "Vercel", "Linear", "Stripe", "Notion"].map((n) => (
                 <svg key={n} viewBox="0 0 80 20" className="h-5"><text x="0" y="16" fontFamily="Inter, sans-serif" fontSize="14" fontWeight="700" fill="#475569">{n}</text></svg>
               ))}
@@ -56,7 +56,7 @@ export default function Home() {
         </div>
       </section>
       {/* 7 Dimensions */}
-      <section className="py-[120px]">
+      <section className="py-[80px]">
         <div className="max-w-[1120px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-12">
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--color-cyan)] mb-1">7 Dimensions</p>
@@ -77,7 +77,7 @@ export default function Home() {
         </div>
       </section>
       {/* How It Works */}
-      <section className="py-[120px]" style={{ background: "rgba(255,255,255,0.01)" }}>
+      <section className="py-[80px]" style={{ background: "rgba(255,255,255,0.01)" }}>
         <div className="max-w-[1120px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-12">
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--color-cyan)] mb-1">How It Works</p>
@@ -95,7 +95,7 @@ export default function Home() {
         </div>
       </section>
       {/* Pricing */}
-      <section className="py-[120px]">
+      <section className="py-[80px]">
         <div className="max-w-[1120px] mx-auto px-6">
           <div className="text-center max-w-[640px] mx-auto mb-12">
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--color-cyan)] mb-1">Pricing</p>
@@ -133,7 +133,7 @@ export default function Home() {
         </div>
       </section>
       {/* FAQ */}
-      <section className="py-[120px]">
+      <section className="py-[80px]">
         <div className="max-w-[640px] mx-auto px-6">
           <div className="text-center mb-12">
             <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--color-cyan)] mb-1">FAQ</p>
