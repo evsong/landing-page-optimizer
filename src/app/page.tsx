@@ -46,7 +46,7 @@ export default function Home() {
           </p>
           <div className="anim-up anim-up-4"><UrlInput /></div>
           <div className="mt-14 flex justify-center gap-8 text-[0.82rem] anim-up anim-up-5">
-            <div className="text-center"><span className="block text-lg font-bold text-white">2,000+</span><span className="text-[var(--text-3)]">Pages analyzed</span></div>
+            <div className="text-center"><span className="block text-lg font-bold text-white">AI-Powered</span><span className="text-[var(--text-3)]">Deep analysis</span></div>
             <div className="w-px bg-white/10" />
             <div className="text-center"><span className="block text-lg font-bold text-white">7</span><span className="text-[var(--text-3)]">Dimensions scored</span></div>
             <div className="w-px bg-white/10" />
@@ -156,7 +156,7 @@ export default function Home() {
             <div>
               <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--text-3)] mb-3">Product</p>
               <div className="flex flex-col gap-1.5">
-                <Link href="#" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Features</Link>
+                <Link href="#dimensions" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Features</Link>
                 <Link href="#pricing" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Pricing</Link>
                 <Link href="/auth/signin" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Sign In</Link>
               </div>
@@ -164,8 +164,9 @@ export default function Home() {
             <div>
               <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--text-3)] mb-3">Legal</p>
               <div className="flex flex-col gap-1.5">
-                <Link href="#" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Privacy</Link>
-                <Link href="#" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Terms</Link>
+                <Link href="/privacy" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Privacy</Link>
+                <Link href="/terms" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Terms</Link>
+                <a href="mailto:support@landingpageoptimizer.online" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Contact</a>
               </div>
             </div>
           </div>

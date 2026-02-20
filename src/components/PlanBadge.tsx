@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { Crown } from "lucide-react";
 
 const planColors: Record<string, string> = {
@@ -17,9 +16,16 @@ export function PlanBadge({ plan }: { plan: string }) {
         {plan}
       </span>
       {!isPaid && (
-        <Link href="/api/upgrade" className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">
+        <button
+          onClick={async () => {
+            const res = await fetch('/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: 'PRO' }) })
+            const { url } = await res.json()
+            if (url) window.location.href = url
+          }}
+          className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+        >
           Upgrade
-        </Link>
+        </button>
       )}
     </div>
   );

@@ -24,6 +24,8 @@ model User {
   stripeSubscriptionId String?
   whitelabelLogo       String?
   whitelabelColor      String?
+  whitelabelName       String?
+  apiKey               String?            @unique
   analysisCount        Int                @default(0)
   monthResetAt         DateTime           @default(now())
   reports              AnalysisReport[]

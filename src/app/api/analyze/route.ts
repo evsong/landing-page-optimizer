@@ -86,6 +86,16 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    // Benchmark: percentile rank
+    const [totalCount, belowCount] = await Promise.all([
+      prisma.analysisReport.count(),
+      prisma.analysisReport.count({ where: { overallScore: { lte: report.overallScore } } }),
+    ])
+    const benchmarkScore = totalCount > 1 ? Math.round((belowCount / totalCount) * 100) : null
+    if (benchmarkScore !== null) {
+      await prisma.analysisReport.update({ where: { id: report.id }, data: { benchmarkScore } })
+    }
+
     // Increment counter
     if (userId) await incrementAnalysisCount(userId)
 

@@ -21,5 +21,5 @@
 
 ## 5. Verify & Polish
 
-- [ ] 5.1 Test full flow: visit homepage → sign in via magic link → verify navbar changes → visit settings → sign out
-- [ ] 5.2 Ensure all protected routes redirect to signin when unauthenticated
+- [x] 5.1 Test full flow: visit homepage → sign in via magic link → verify navbar changes → visit settings → sign out
+- [x] 5.2 Ensure all protected routes redirect to signin when unauthenticated

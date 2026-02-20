@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
-import { createCheckoutSession } from '@/lib/stripe'
-import { Plan } from '@prisma/client'
+import { Creem } from 'creem'
+
+const creem = new Creem({ apiKey: process.env.CREEM_API_KEY! })
+
+const PRODUCT_IDS: Record<string, string> = {
+  PRO: process.env.CREEM_PRO_PRODUCT_ID || '',
+  AGENCY: process.env.CREEM_AGENCY_PRODUCT_ID || '',
+}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession()
@@ -20,7 +26,12 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const checkoutSession = await createCheckoutSession(userId, plan as 'PRO' | 'AGENCY', user.stripeCustomerId || undefined)
+  const checkout = await creem.checkouts.create({
+    productId: PRODUCT_IDS[plan],
+    successUrl: `${process.env.NEXTAUTH_URL}/dashboard?upgraded=${plan}`,
+    metadata: { userId, plan },
+    customer: user.email ? { email: user.email } : undefined,
+  })
 
-  return NextResponse.json({ url: checkoutSession.url })
+  return NextResponse.json({ url: checkout.checkoutUrl })
 }

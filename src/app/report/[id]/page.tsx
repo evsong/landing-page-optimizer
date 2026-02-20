@@ -77,7 +77,7 @@ export default function ReportPage() {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <button className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors">
+          <button onClick={() => window.open(`/api/report/${report.id}/pdf`)} className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors">
             <Download className="w-4 h-4" /> PDF
           </button>
         </div>
