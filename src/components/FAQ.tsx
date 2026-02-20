@@ -1,31 +1,26 @@
 "use client";
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    q: "What does PageScore analyze?",
-    a: "PageScore evaluates your landing page across 7 dimensions: structure completeness, visual design, copy quality, conversion optimization, technical performance, SEO basics, and industry benchmarks. We use Lighthouse, Pa11y, and AI vision analysis to give you a comprehensive score.",
+    q: "How does PageScore analyze my landing page?",
+    a: "We use a 3-layer analysis pipeline: Puppeteer loads your page and captures a screenshot, Lighthouse audits performance and SEO, and AI Vision analyzes design quality and generates actionable suggestions. The entire process takes about 30 seconds.",
   },
   {
-    q: "How is this different from PageSpeed Insights?",
-    a: "PageSpeed only checks technical performance. PageScore goes further — we analyze your copy quality, conversion elements (CTAs, trust signals, forms), visual design, and give you AI-powered rewrite suggestions. It's a complete landing page audit, not just a speed test.",
+    q: "What makes PageScore different from PageSpeed Insights?",
+    a: "PageSpeed only checks technical performance. PageScore analyzes 7 dimensions including copy quality, conversion optimization, and visual design — and gives you specific, actionable suggestions on what to change, not just what's wrong.",
   },
   {
-    q: "How many pages can I analyze for free?",
-    a: "The free plan includes 3 analyses per month. Upgrade to PRO for unlimited analyses, or AGENCY for competitor comparisons and PDF exports.",
+    q: "Is my landing page data kept private?",
+    a: "Yes. We only analyze publicly accessible pages. Screenshots and analysis data are stored securely and only visible to your account. We never share your data with third parties.",
   },
   {
-    q: "What AI model powers the suggestions?",
-    a: "We use Claude by Anthropic for both visual design analysis (screenshot review) and copy optimization suggestions. The AI provides specific, actionable rewrites — not generic advice.",
+    q: "Can I analyze competitor landing pages?",
+    a: "Absolutely. You can analyze any public URL. Agency plan users get a dedicated side-by-side comparison feature that highlights differences across all 7 dimensions with AI-generated insights.",
   },
   {
-    q: "Can I compare my page against a competitor?",
-    a: "Yes! The AGENCY plan includes side-by-side competitor comparison. Enter two URLs and get a detailed breakdown of how each page scores across all 7 dimensions.",
-  },
-  {
-    q: "Is my data private?",
-    a: "Your analysis results are stored securely and only visible to you. We don't share your URLs or scores with anyone. Screenshots are processed in memory and not permanently stored.",
+    q: "How accurate is the AI scoring?",
+    a: "Our scoring combines objective metrics (Lighthouse data, DOM analysis) with AI evaluation. Performance and SEO scores are based on industry-standard tools. Design and copy scores use Claude AI vision, calibrated against thousands of high-converting landing pages.",
   },
 ];
 
@@ -33,21 +28,28 @@ export function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <div className="space-y-2">
+    <div>
       {faqs.map((faq, i) => (
-        <div key={i} className="border border-zinc-800 rounded-lg overflow-hidden">
+        <div key={i} className="border-b border-[var(--border)]">
           <button
             onClick={() => setOpen(open === i ? null : i)}
-            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zinc-900/50 transition-colors"
+            className="w-full flex items-center justify-between py-5 text-left font-semibold text-[0.95rem] text-[var(--text)] hover:text-[var(--color-cyan)] transition-colors"
           >
-            <span className="text-sm font-medium text-zinc-200">{faq.q}</span>
-            <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${open === i ? "rotate-180" : ""}`} />
+            <span>{faq.q}</span>
+            <svg
+              width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"
+              className={`shrink-0 transition-transform duration-300 ${open === i ? "rotate-45" : ""}`}
+            >
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
           </button>
-          {open === i && (
-            <div className="px-4 pb-3">
-              <p className="text-sm text-zinc-400 leading-relaxed">{faq.a}</p>
-            </div>
-          )}
+          <div
+            className="overflow-hidden transition-all duration-350"
+            style={{ maxHeight: open === i ? "200px" : "0", paddingBottom: open === i ? "20px" : "0" }}
+          >
+            <p className="text-[0.9rem] text-[var(--text-2)] leading-relaxed">{faq.a}</p>
+          </div>
         </div>
       ))}
     </div>

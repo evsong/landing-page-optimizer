@@ -11,20 +11,16 @@ export function UrlInput() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!url.trim()) return;
-
     setLoading(true);
     setError("");
-
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim() }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Analysis failed");
-
       router.push(`/report/${data.reportId}`);
     } catch (err: any) {
       setError(err.message);
@@ -33,30 +29,28 @@ export function UrlInput() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 focus-within:border-cyan-500/50 transition-colors">
+    <>
+      <form onSubmit={handleSubmit} className="flex gap-2 max-w-[520px] mx-auto items-center h-14 rounded-full border border-white/15 bg-[#141414] px-5 pr-1 shadow-[0_0_0_1px_rgba(0,0,0,1),0_20px_40px_-10px_rgba(0,0,0,0.6)] transition-all focus-within:border-white/25">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" className="shrink-0">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
         <input
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://your-landing-page.com"
-          className="flex-1 bg-transparent px-4 py-3 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none text-base sm:text-lg"
+          className="flex-1 bg-transparent border-none text-white text-[0.95rem] font-mono tracking-tight outline-none placeholder:text-[var(--text-3)] placeholder:font-mono"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={loading || !url.trim()}
-          className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-sky-500 text-white font-semibold rounded-lg hover:opacity-90 disabled:opacity-50 transition-all whitespace-nowrap"
+          className="shrink-0 rounded-full px-6 h-[46px] font-semibold text-white bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-sky)] hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] disabled:opacity-50 transition-all whitespace-nowrap"
         >
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-              Analyzing...
-            </span>
-          ) : "Analyze"}
+          {loading ? "Analyzing..." : "Analyze Free"}
         </button>
-      </div>
+      </form>
       {error && <p className="mt-3 text-red-400 text-sm text-center">{error}</p>}
-    </form>
+    </>
   );
 }

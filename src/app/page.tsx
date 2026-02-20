@@ -1,152 +1,188 @@
+"use client";
+
 import { UrlInput } from "@/components/UrlInput";
 import { FAQ } from "@/components/FAQ";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { BarChart3, Eye, FileText, Gauge, Layout, Search, Zap } from "lucide-react";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 import Link from "next/link";
 
-const dimensions = [
-  { icon: <Layout className="w-5 h-5" />, title: "Structure", desc: "Hero, social proof, FAQ, pricing — are all key sections present?" },
-  { icon: <Eye className="w-5 h-5" />, title: "Visual Design", desc: "AI vision analysis of color, typography, whitespace, and hierarchy." },
-  { icon: <FileText className="w-5 h-5" />, title: "Copy Quality", desc: "Headline clarity, CTA strength, value proposition, and persuasiveness." },
-  { icon: <Zap className="w-5 h-5" />, title: "Conversion", desc: "CTA placement, form friction, trust signals, and urgency elements." },
-  { icon: <Gauge className="w-5 h-5" />, title: "Performance", desc: "Lighthouse + HAR analysis: load speed, bundle size, render-blocking." },
-  { icon: <Search className="w-5 h-5" />, title: "SEO Basics", desc: "Title, meta, OG tags, heading hierarchy, alt texts, structured data." },
-  { icon: <BarChart3 className="w-5 h-5" />, title: "Benchmark", desc: "How you compare against industry averages and top performers." },
+const dims = [
+  { name: "Structure", desc: "Hero, CTA, social proof, FAQ completeness", icon: <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></> },
+  { name: "Design", desc: "Visual hierarchy, color harmony, spacing", icon: <><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></> },
+  { name: "Copy", desc: "Headline clarity, value prop, CTA text", icon: <><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></> },
+  { name: "Conversion", desc: "CTA placement, form friction, trust signals", icon: <><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></> },
+  { name: "Performance", desc: "Core Web Vitals, load speed, TBT", icon: <><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></> },
+  { name: "SEO", desc: "Meta tags, headings, alt text, schema", icon: <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></> },
+  { name: "Benchmark", desc: "Industry comparison, percentile rank", icon: <><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></> },
+];
+
+const steps = [
+  { num: "01_ANALYZE", title: "Paste any URL", desc: "We simulate a real user visit to capture load speed, design, and copy." },
+  { num: "02_DIAGNOSE", title: "Identify Leaks", desc: "Find exactly where you're losing customers (and revenue)." },
+  { num: "03_OPTIMIZE", title: "Fix & Scale", desc: "Get AI-rewritten copy and code snippets to boost conversion." },
 ];
 
 const plans = [
-  {
-    name: "Free", price: "$0", period: "forever",
-    features: ["3 analyses / month", "7-dimension score", "Top issues list", "Basic report"],
-    cta: "Get Started", href: "/auth/signin", highlight: false,
-  },
-  {
-    name: "Pro", price: "$5.99", period: "/month",
-    features: ["Unlimited analyses", "AI suggestions", "Copy rewrites", "PDF export", "History & trends"],
-    cta: "Start Free Trial", href: "/auth/signin", highlight: true,
-  },
-  {
-    name: "Agency", price: "$49", period: "/month",
-    features: ["Everything in Pro", "Competitor comparison", "White-label PDF reports", "API access", "Priority support"],
-    cta: "Start Free Trial", href: "/auth/signin", highlight: false,
-  },
+  { name: "Free", price: "$0", period: "/mo", desc: "Try it out — 3 analyses per month.", features: ["3 analyses / month", "7-dimension scoring", "Basic issue summary", "Score history (last 3)"], cta: "Get Started", popular: false },
+  { name: "Pro", price: "$5.99", period: "/mo", desc: "Unlimited analyses with AI suggestions.", features: ["Unlimited analyses", "AI actionable suggestions", "Copy rewrite alternatives", "Full history & trends", "Priority support"], cta: "Upgrade to Pro", popular: true },
+  { name: "Agency", price: "$49", period: "/mo", desc: "Automate your client reporting.", features: ["Everything in Pro", "White-label PDF Reports", "Competitor benchmarks", "API access for integrations", "Bulk URL analysis"], cta: "Contact Sales", popular: false },
 ];
 
 export default function Home() {
+  useScrollReveal();
   return (
-    <main className="min-h-screen">
+    <main className="relative z-[1]" style={{ paddingTop: 60 }}>
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <Link href="/" className="text-xl font-bold bg-gradient-to-r from-cyan-500 to-sky-500 dark:from-cyan-400 dark:to-sky-400 bg-clip-text text-transparent">
-          PageScore
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="#pricing" className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Pricing</Link>
-          <ThemeToggle />
-          <Link href="/auth/signin" className="text-sm px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors">
-            Sign in
+      <nav className="fixed top-0 left-0 right-0 z-[100] bg-[rgba(10,10,10,0.8)] backdrop-blur-[20px] border-b border-[var(--border)]">
+        <div className="max-w-[1120px] mx-auto px-6 flex items-center justify-between h-[60px]">
+          <Link href="/" className="flex items-center gap-2.5">
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#0f172a"/><path d="M 12 46 A 22 22 0 0 1 52 46" stroke="#1e293b" strokeWidth="6" strokeLinecap="round" fill="none"/><path d="M 12 46 A 22 22 0 0 1 46 24" stroke="url(#ng)" strokeWidth="6" strokeLinecap="round" fill="none"/><defs><linearGradient id="ng" x1="12" y1="46" x2="46" y2="24"><stop offset="0%" stopColor="#EF4444"/><stop offset="40%" stopColor="#F59E0B"/><stop offset="100%" stopColor="#6366f1"/></linearGradient></defs><line x1="32" y1="44" x2="44" y2="28" stroke="#6366f1" strokeWidth="3" strokeLinecap="round"/><circle cx="32" cy="44" r="4" fill="#6366f1"/></svg>
+            <span className="font-extrabold text-xl bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-sky)] bg-clip-text text-transparent">PageScore</span>
           </Link>
+          <div className="hidden md:flex gap-0.5 bg-white/[0.04] rounded-lg p-[3px]">
+            <span className="px-4 py-1.5 rounded-md text-[0.85rem] font-medium text-[var(--text)] bg-white/[0.08]">Home</span>
+            <Link href="/dashboard" className="px-4 py-1.5 rounded-md text-[0.85rem] font-medium text-[var(--text-3)] hover:text-[var(--text-2)]">Dashboard</Link>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link href="/auth/signin" className="px-3.5 py-2 text-[0.82rem] text-[var(--text-2)] hover:text-[var(--text)]">Sign In</Link>
+            <Link href="/auth/signin" className="px-3.5 py-[7px] text-[0.82rem] font-semibold text-white bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-sky)] rounded-[10px] shadow-[0_2px_12px_rgba(99,102,241,0.25)] hover:shadow-[0_4px_24px_rgba(99,102,241,0.4)] hover:-translate-y-px transition-all">Get Started</Link>
+          </div>
         </div>
       </nav>
-
       {/* Hero */}
-      <section className="px-4 sm:px-6 pt-16 sm:pt-24 pb-16 sm:pb-20 text-center max-w-4xl mx-auto">
-        <div className="inline-block px-3 py-1 mb-6 text-xs text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
-          AI-Powered Landing Page Analysis
+      <section className="pt-[180px] pb-[120px] text-center relative">
+        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[radial-gradient(circle,rgba(99,102,241,0.15)_0%,transparent_70%)] blur-[60px] pointer-events-none z-[-1]" />
+        <div className="max-w-[1120px] mx-auto px-6">
+          <h1 className="text-[clamp(3.5rem,6vw,5rem)] font-semibold leading-[1.05] tracking-[-0.06em] mb-6 anim-up anim-up-2">
+            How good is your<br /><span className="text-white" style={{ textShadow: "0 0 30px rgba(255,255,255,0.1)" }}>landing page?</span>
+          </h1>
+          <p className="text-[1.15rem] text-[var(--text-2)] max-w-[520px] mx-auto mb-12 leading-relaxed font-light anim-up anim-up-3">
+            AI-powered analysis across 7 dimensions.<br />Get your score in 30 seconds.
+          </p>
+          <div className="anim-up anim-up-4"><UrlInput /></div>
+          <div className="mt-14 text-[var(--text-3)] text-[0.82rem] anim-up anim-up-5">
+            <span className="block mb-3.5 tracking-wide">Trusted by 2,000+ marketers and founders</span>
+            <div className="flex justify-center gap-9 items-center opacity-15 grayscale hover:opacity-30 transition-opacity">
+              {["Acme", "Vercel", "Linear", "Stripe", "Notion"].map((n) => (
+                <svg key={n} viewBox="0 0 80 20" className="h-5"><text x="0" y="16" fontFamily="Inter, sans-serif" fontSize="14" fontWeight="700" fill="#475569">{n}</text></svg>
+              ))}
+            </div>
+          </div>
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
-          How good is your<br />
-          <span className="bg-gradient-to-r from-cyan-400 to-sky-400 bg-clip-text text-transparent">landing page?</span>
-        </h1>
-        <p className="text-lg text-zinc-500 dark:text-zinc-400 mb-10 max-w-2xl mx-auto">
-          Get a 7-dimension score with AI-powered suggestions in under 60 seconds. Find exactly where you&apos;re losing conversions.
-        </p>
-        <UrlInput />
-        <p className="mt-4 text-xs text-zinc-400 dark:text-zinc-600">No signup required for your first analysis</p>
       </section>
-
       {/* 7 Dimensions */}
-      <section className="px-6 py-20 max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-4">7 dimensions. One score.</h2>
-        <p className="text-zinc-500 dark:text-zinc-400 text-center mb-12 max-w-xl mx-auto">
-          We analyze your page from every angle that matters for conversion.
-        </p>
-        <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {dimensions.map((d, i) => (
-            <div key={i} className="p-5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
-              <div className="text-cyan-600 dark:text-cyan-400 mb-3">{d.icon}</div>
-              <h3 className="font-semibold mb-1">{d.title}</h3>
-              <p className="text-sm text-zinc-500">{d.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="px-6 py-20 max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12">How it works</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            { step: "01", title: "Paste any URL", desc: "We simulate a real user visit to capture load speed, design, and copy." },
-            { step: "02", title: "Identify leaks", desc: "Find exactly where you're losing customers and revenue." },
-            { step: "03", title: "Fix & scale", desc: "Get AI-rewritten copy and code snippets to boost conversion." },
-          ].map((s, i) => (
-            <div key={i} className="text-center">
-              <div className="text-xs font-mono text-cyan-400 mb-2">{s.step}</div>
-              <h3 className="text-lg font-semibold mb-2">{s.title}</h3>
-              <p className="text-sm text-zinc-500">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="px-6 py-20 max-w-5xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-4">Simple pricing</h2>
-        <p className="text-zinc-500 dark:text-zinc-400 text-center mb-12">Start free. Upgrade when you need more.</p>
-        <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((plan, i) => (
-            <div key={i} className={`p-6 rounded-xl border ${plan.highlight ? "border-cyan-500/50 bg-cyan-500/5" : "border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50"}`}>
-              <h3 className="font-semibold mb-1">{plan.name}</h3>
-              <div className="flex items-baseline gap-1 mb-4">
-                <span className="text-3xl font-bold">{plan.price}</span>
-                <span className="text-sm text-zinc-500">{plan.period}</span>
+      <section className="py-[120px]">
+        <div className="max-w-[1120px] mx-auto px-6">
+          <div className="text-center max-w-[640px] mx-auto mb-12">
+            <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--color-cyan)] mb-1">7 Dimensions</p>
+            <h2 className="text-[clamp(1.6rem,3vw,2.2rem)] font-semibold leading-[1.05] tracking-[-0.06em]">Every angle, one score</h2>
+            <p className="text-[var(--text-2)] mt-2">We analyze your landing page across 7 critical dimensions that determine conversion success.</p>
+          </div>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-px bg-white/[0.03] rounded-[14px] overflow-hidden border border-white/[0.03]">
+            {dims.map((d, i) => (
+              <div key={i} className={`text-center py-7 px-4 bg-[var(--bg)] transition-all duration-300 group reveal reveal-delay-${i + 1}`} style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 0 rgba(255,255,255,0.05)" }}>
+                <div className="flex items-center justify-center mx-auto mb-3.5">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="1.5" strokeLinecap="round" className="opacity-70 group-hover:stroke-white group-hover:opacity-100 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{d.icon}</svg>
+                </div>
+                <h3 className="text-[0.9rem] font-medium mb-1.5">{d.name}</h3>
+                <p className="text-[0.78rem] text-[var(--text-3)] leading-relaxed">{d.desc}</p>
               </div>
-              <ul className="space-y-2 mb-6">
-                {plan.features.map((f, j) => (
-                  <li key={j} className="text-sm text-zinc-400 flex items-center gap-2">
-                    <span className="text-cyan-400">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={plan.href}
-                className={`block text-center py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  plan.highlight
-                    ? "bg-gradient-to-r from-cyan-500 to-sky-500 text-white hover:opacity-90"
-                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-                }`}
-              >
-                {plan.cta}
-              </Link>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
-
+      {/* How It Works */}
+      <section className="py-[120px]" style={{ background: "rgba(255,255,255,0.01)" }}>
+        <div className="max-w-[1120px] mx-auto px-6">
+          <div className="text-center max-w-[640px] mx-auto mb-12">
+            <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--color-cyan)] mb-1">How It Works</p>
+            <h2 className="text-[clamp(1.6rem,3vw,2.2rem)] font-semibold leading-[1.05] tracking-[-0.06em]">Three steps to a better page</h2>
+          </div>
+          <div className="flex border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--bg-card)] max-md:flex-col">
+            {steps.map((s, i) => (
+              <div key={i} className={`flex-1 p-6 text-left reveal reveal-delay-${i + 1} ${i < 2 ? "border-r border-[var(--border)] max-md:border-r-0 max-md:border-b" : ""}`}>
+                <div className="font-mono font-medium text-[0.7rem] text-[var(--color-cyan)] opacity-80 mb-2">{s.num}</div>
+                <h3 className="text-[1.1rem] font-medium mb-2">{s.title}</h3>
+                <p className="text-[0.88rem] text-[var(--text-2)]">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      {/* Pricing */}
+      <section className="py-[120px]">
+        <div className="max-w-[1120px] mx-auto px-6">
+          <div className="text-center max-w-[640px] mx-auto mb-12">
+            <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--color-cyan)] mb-1">Pricing</p>
+            <h2 className="text-[clamp(1.6rem,3vw,2.2rem)] font-semibold leading-[1.05] tracking-[-0.06em]">Start free, scale as you grow</h2>
+            <p className="text-[var(--text-2)] mt-2">No credit card required for the free plan.</p>
+          </div>
+          <div className="grid grid-cols-3 gap-5 items-start max-md:grid-cols-1">
+            {plans.map((p, i) => (
+              <div key={i} className={`p-8 rounded-[14px] border transition-all duration-300 reveal-scale reveal-delay-${i + 1} ${p.popular ? "border-white/10 bg-black scale-[1.04] relative" : "bg-[var(--bg-card)] border-[var(--border)] hover:border-white/20 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.4)]"}`}>
+                {p.popular && (
+                  <>
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-sky)] text-white text-[0.7rem] font-bold px-4 py-1 rounded-full uppercase tracking-wide shadow-[0_4px_16px_rgba(99,102,241,0.3)]">Most Popular</div>
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                  </>
+                )}
+                <p className="font-bold text-[1.1rem]">{p.name}</p>
+                <p className="font-extrabold text-[2.4rem] font-mono tracking-tight mt-3 mb-1">{p.price}<span className="text-[0.9rem] font-normal text-[var(--text-3)]"> {p.period}</span></p>
+                <p className="text-[0.82rem] text-[var(--text-3)] mb-5">{p.desc}</p>
+                <ul className="mb-6 space-y-1.5">
+                  {p.features.map((f, j) => (
+                    <li key={j} className="flex items-center gap-2 text-[0.85rem] text-[var(--text-2)]">
+                      <span className="w-4 h-4 rounded-full bg-[rgba(34,197,94,0.12)] flex items-center justify-center shrink-0">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round"><path d="M5 12l5 5L20 7"/></svg>
+                      </span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/auth/signin" className={`block w-full text-center py-2.5 rounded-[10px] text-[0.9rem] font-semibold transition-all ${p.popular ? "bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-sky)] text-white shadow-[0_2px_12px_rgba(99,102,241,0.25)]" : "border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--border-hover)] hover:text-[var(--text)]"}`}>
+                  {p.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       {/* FAQ */}
-      <section className="px-6 py-20 max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12">Frequently asked questions</h2>
-        <FAQ />
+      <section className="py-[120px]">
+        <div className="max-w-[640px] mx-auto px-6">
+          <div className="text-center mb-12">
+            <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--color-cyan)] mb-1">FAQ</p>
+            <h2 className="text-[clamp(1.6rem,3vw,2.2rem)] font-semibold leading-[1.05] tracking-[-0.06em]">Common questions</h2>
+          </div>
+          <FAQ />
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="px-6 py-12 border-t border-zinc-200 dark:border-zinc-800">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-sm text-zinc-400 dark:text-zinc-600">&copy; 2026 PageScore. All rights reserved.</span>
-          <div className="flex gap-6 text-sm text-zinc-400 dark:text-zinc-600">
-            <Link href="#" className="hover:text-zinc-600 dark:hover:text-zinc-400">Privacy</Link>
-            <Link href="#" className="hover:text-zinc-600 dark:hover:text-zinc-400">Terms</Link>
+      <footer className="relative z-[1] border-t border-[var(--border)] pt-12 pb-6 mt-20">
+        <div className="max-w-[1120px] mx-auto px-6 flex justify-between gap-10 max-md:flex-col max-md:gap-8">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <svg width="20" height="20" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="14" fill="#0f172a"/><path d="M 12 46 A 22 22 0 0 1 46 24" stroke="url(#fg)" strokeWidth="6" strokeLinecap="round" fill="none"/><defs><linearGradient id="fg" x1="12" y1="46" x2="46" y2="24"><stop offset="0%" stopColor="#EF4444"/><stop offset="100%" stopColor="#6366f1"/></linearGradient></defs></svg>
+              <span className="font-bold text-sm">PageScore</span>
+            </div>
+            <p className="text-[0.82rem] text-[var(--text-3)]">&copy; 2026 PageScore. All rights reserved.</p>
+          </div>
+          <div className="flex gap-16 max-md:gap-6">
+            <div>
+              <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--text-3)] mb-3">Product</p>
+              <div className="flex flex-col gap-1.5">
+                <Link href="#" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Features</Link>
+                <Link href="#pricing" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Pricing</Link>
+                <Link href="/auth/signin" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Sign In</Link>
+              </div>
+            </div>
+            <div>
+              <p className="text-[0.7rem] font-medium uppercase tracking-[0.1em] text-[var(--text-3)] mb-3">Legal</p>
+              <div className="flex flex-col gap-1.5">
+                <Link href="#" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Privacy</Link>
+                <Link href="#" className="text-[0.85rem] text-[var(--text-3)] hover:text-[var(--text)]">Terms</Link>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

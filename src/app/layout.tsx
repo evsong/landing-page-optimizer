@@ -37,11 +37,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');document.documentElement.classList.toggle('dark',t?t==='dark':true)}catch(e){document.documentElement.classList.add('dark')}})()` }} />
-      </head>
-      <body className={`${inter.variable} ${jetbrains.variable} font-sans antialiased bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen transition-colors`}>
+    <html lang="en" className="dark">
+      <body className={`${inter.variable} ${jetbrains.variable} font-sans antialiased min-h-screen overflow-x-hidden`}>
+        <div className="bg-grid" aria-hidden="true" />
+        <div className="bg-grain" aria-hidden="true" />
+        <div className="bg-vignette" aria-hidden="true" />
         <Providers>{children}</Providers>
       </body>
     </html>
