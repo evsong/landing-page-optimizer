@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { BarChart3, Plus, TrendingUp } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { Navbar } from "@/components/Navbar";
 
 interface ReportSummary {
   id: string;
@@ -48,15 +48,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen">
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-6xl mx-auto border-b border-zinc-200 dark:border-zinc-800">
-        <Link href="/" className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-sky-400 bg-clip-text text-transparent">PageScore</Link>
-        <div className="flex items-center gap-3">
-          <span className="text-xs px-2 py-1 rounded border border-zinc-700 text-zinc-400">{plan}</span>
-          <span className="text-sm text-zinc-400 hidden sm:inline">{session?.user?.email}</span>
-          <ThemeToggle />
-        </div>
-      </nav>
+    <main className="min-h-screen" style={{ paddingTop: 60 }}>
+      <Navbar />
       <div className="max-w-4xl mx-auto px-6 pt-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold">Dashboard</h1>
