@@ -45,13 +45,12 @@ export default function Home() {
             AI-powered analysis across 7 dimensions.<br />Get your score in 30 seconds.
           </p>
           <div className="anim-up anim-up-4"><UrlInput /></div>
-          <div className="mt-14 text-[var(--text-3)] text-[0.82rem] anim-up anim-up-5">
-            <span className="block mb-3.5 tracking-wide">Trusted by 2,000+ marketers and founders</span>
-            <div className="flex justify-center gap-9 items-center opacity-30 grayscale hover:opacity-50 transition-opacity">
-              {["Acme", "Vercel", "Linear", "Stripe", "Notion"].map((n) => (
-                <svg key={n} viewBox="0 0 80 20" className="h-5"><text x="0" y="16" fontFamily="Inter, sans-serif" fontSize="14" fontWeight="700" fill="#475569">{n}</text></svg>
-              ))}
-            </div>
+          <div className="mt-14 flex justify-center gap-8 text-[0.82rem] anim-up anim-up-5">
+            <div className="text-center"><span className="block text-lg font-bold text-white">2,000+</span><span className="text-[var(--text-3)]">Pages analyzed</span></div>
+            <div className="w-px bg-white/10" />
+            <div className="text-center"><span className="block text-lg font-bold text-white">7</span><span className="text-[var(--text-3)]">Dimensions scored</span></div>
+            <div className="w-px bg-white/10" />
+            <div className="text-center"><span className="block text-lg font-bold text-white">30s</span><span className="text-[var(--text-3)]">Average analysis</span></div>
           </div>
         </div>
       </section>
@@ -70,7 +69,7 @@ export default function Home() {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="1.5" strokeLinecap="round" className="opacity-70 group-hover:stroke-white group-hover:opacity-100 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all">{d.icon}</svg>
                 </div>
                 <h3 className="text-[0.9rem] font-medium mb-1.5">{d.name}</h3>
-                <p className="text-[0.78rem] text-[var(--text-3)] leading-relaxed">{d.desc}</p>
+                <p className="text-[0.78rem] text-[var(--text-2)] leading-relaxed">{d.desc}</p>
               </div>
             ))}
           </div>
