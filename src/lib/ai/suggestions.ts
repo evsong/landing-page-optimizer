@@ -36,7 +36,7 @@ Return ONLY a JSON array of 5-8 suggestions, prioritized by impact:
 [{"title": "...", "impact": "high|medium|low", "fix": "specific actionable fix", "dimension": "structure|conversion|performance|seo|copy"}]`
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-opus-4-6',
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     })
@@ -64,7 +64,7 @@ Body (excerpt): ${domData.pageText.slice(0, 1500)}
 Return ONLY JSON: {"score": <0-100>, "feedback": "<2-3 sentences>"}`
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-opus-4-6',
       max_tokens: 512,
       messages: [{ role: 'user', content: prompt }],
     })

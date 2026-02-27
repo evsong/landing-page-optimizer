@@ -24,7 +24,7 @@ Return ONLY a JSON array:
 [{"element": "headline|subheadline|cta", "original": "...", "alternatives": ["alt1", "alt2", "alt3"]}]`
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-opus-4-6',
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     })

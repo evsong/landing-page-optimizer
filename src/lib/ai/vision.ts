@@ -20,7 +20,7 @@ export async function analyzeDesign(screenshot: Buffer): Promise<DesignAnalysis 
     const base64 = screenshot.toString('base64')
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       messages: [{
         role: 'user',
