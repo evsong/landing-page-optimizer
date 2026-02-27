@@ -92,12 +92,11 @@ export async function analyzeUrl(
     report('scoring', 65)
     const scores = computeScores(domData, lighthouseData, pa11yData, harData, extendedMetrics)
 
-    // Step 7-8: AI analysis (parallel)
+    // Step 7-8: AI analysis (design + suggestions in parallel, then copy sequentially to avoid proxy rate limits)
     report('ai_analysis', 80)
-    const [designResult, suggestionsResult, copyResult] = await Promise.allSettled([
+    const [designResult, suggestionsResult] = await Promise.allSettled([
       analyzeDesign(screenshotDesktop),
       generateSuggestions(domData, scores),
-      analyzeCopy(domData),
     ])
 
     const designScore = designResult.status === 'fulfilled' ? designResult.value : null
@@ -105,14 +104,19 @@ export async function analyzeUrl(
       scores.designScore = designScore.score
     }
 
-    const copyScore = copyResult.status === 'fulfilled' ? copyResult.value : null
-    if (copyScore) {
-      scores.copyScore = copyScore.score
+    const suggestions = suggestionsResult.status === 'fulfilled' ? suggestionsResult.value : []
+
+    // Run copy analysis after suggestions to avoid concurrent Anthropic proxy requests
+    try {
+      const copyAnalysis = await analyzeCopy(domData)
+      if (copyAnalysis) {
+        scores.copyScore = copyAnalysis.score
+      }
+    } catch (err) {
+      console.error('Copy analysis failed in analyzer:', err)
     }
 
     recalculateOverall(scores)
-
-    const suggestions = suggestionsResult.status === 'fulfilled' ? suggestionsResult.value : []
 
     // Copy rewrites for low copy scores
     let copyRewrites = null
