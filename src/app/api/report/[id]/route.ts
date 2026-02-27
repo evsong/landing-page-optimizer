@@ -26,14 +26,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     performanceScore: report.performanceScore,
     seoScore: report.seoScore,
     benchmarkScore: report.benchmarkScore,
+    copyScore: report.copyScore,
     accessibilityPenalty: report.accessibilityPenalty,
     issues: report.issues,
     createdAt: report.createdAt,
   }
 
-  // PRO+ get suggestions and copy score
+  // PRO+ get suggestions and copy rewrites
   if (plan !== 'FREE') {
-    response.copyScore = report.copyScore
     response.suggestions = report.suggestions
     response.copyRewrites = report.copyRewrites
     response.harData = report.harData
