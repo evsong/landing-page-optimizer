@@ -145,3 +145,21 @@ export function computeScores(
     frontendQualityIssues: frontendQuality.issues,
   }
 }
+
+export function recalculateOverall(scores: ScoringResult): void {
+  const dimensions: Array<{ score: number; weight: number }> = [
+    { score: scores.structureScore, weight: WEIGHTS.structure },
+    { score: scores.conversionScore, weight: WEIGHTS.conversion },
+    { score: scores.performanceScore, weight: WEIGHTS.performance },
+    { score: scores.seoScore, weight: WEIGHTS.seo },
+  ]
+  if (scores.designScore !== null) dimensions.push({ score: scores.designScore, weight: WEIGHTS.design })
+  if (scores.copyScore !== null) dimensions.push({ score: scores.copyScore, weight: WEIGHTS.copy })
+  if (scores.benchmarkScore !== null) dimensions.push({ score: scores.benchmarkScore, weight: WEIGHTS.benchmark })
+
+  const totalWeight = dimensions.reduce((sum, d) => sum + d.weight, 0)
+  const weightedSum = dimensions.reduce((sum, d) => sum + d.score * d.weight, 0)
+  const rawScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0
+  scores.overallScore = Math.max(0, Math.min(100, rawScore - scores.accessibilityPenalty))
+  scores.letterGrade = letterGrade(scores.overallScore)
+}

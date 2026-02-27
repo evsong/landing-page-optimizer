@@ -5,9 +5,9 @@ import { runPa11y } from './pa11y'
 import { extractDomData, DomData } from './dom-extractor'
 import { captureHar, HarData } from './har-analyzer'
 import { collectExtendedMetrics, ExtendedMetrics } from './extended-metrics'
-import { computeScores, ScoringResult } from './scoring'
+import { computeScores, recalculateOverall, ScoringResult } from './scoring'
 import { analyzeDesign } from './ai/vision'
-import { generateSuggestions } from './ai/suggestions'
+import { generateSuggestions, analyzeCopy } from './ai/suggestions'
 import { generateRewrites } from './ai/rewrites'
 
 export interface AnalysisResult {
@@ -94,15 +94,23 @@ export async function analyzeUrl(
 
     // Step 7-8: AI analysis (parallel)
     report('ai_analysis', 80)
-    const [designResult, suggestionsResult] = await Promise.allSettled([
+    const [designResult, suggestionsResult, copyResult] = await Promise.allSettled([
       analyzeDesign(screenshotDesktop),
       generateSuggestions(domData, scores),
+      analyzeCopy(domData),
     ])
 
     const designScore = designResult.status === 'fulfilled' ? designResult.value : null
     if (designScore) {
       scores.designScore = designScore.score
     }
+
+    const copyScore = copyResult.status === 'fulfilled' ? copyResult.value : null
+    if (copyScore) {
+      scores.copyScore = copyScore.score
+    }
+
+    recalculateOverall(scores)
 
     const suggestions = suggestionsResult.status === 'fulfilled' ? suggestionsResult.value : []
 

@@ -145,6 +145,8 @@ export default function ReportPage() {
                 </div>
               ))}
             </div>
+          ) : report.copyScore === null || report.copyScore === undefined ? (
+            <p className="text-sm text-zinc-500">Copy analysis not available for this page.</p>
           ) : (
             <p className="text-sm text-zinc-500">Copy score is above threshold — no rewrites needed.</p>
           )}
