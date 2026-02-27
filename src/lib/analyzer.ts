@@ -52,7 +52,13 @@ export async function analyzeUrl(
     // Step 1: Load page with HAR capture
     report('loading', 15)
     const harPromise = captureHar(page)
-    await page.goto(url, { waitUntil: 'networkidle0', timeout: 15000 })
+    try {
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 })
+    } catch (navErr: any) {
+      // If navigation times out, continue with whatever loaded
+      if (!navErr.message?.includes('timeout')) throw navErr
+      console.warn('Navigation timeout, continuing with partial load')
+    }
     const finalUrl = page.url()
 
     // Step 2: Screenshots (desktop + mobile)
