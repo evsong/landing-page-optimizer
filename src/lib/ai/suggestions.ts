@@ -52,9 +52,8 @@ Return ONLY a JSON array of 5-8 suggestions, prioritized by impact:
   }
 }
 
-export async function analyzeCopy(domData: DomData): Promise<{ score: number; feedback: string } | null> {
-  try {
-    const prompt = `Rate this landing page copy quality 0-100. Evaluate: clarity, persuasiveness, value proposition, CTA strength, grammar.
+export async function analyzeCopy(domData: DomData): Promise<{ score: number; feedback: string }> {
+  const prompt = `Rate this landing page copy quality 0-100. Evaluate: clarity, persuasiveness, value proposition, CTA strength, grammar.
 
 Headline: ${domData.heroText.headline}
 Subheadline: ${domData.heroText.subheadline}
@@ -63,19 +62,17 @@ Body (excerpt): ${domData.pageText.slice(0, 1500)}
 
 Return ONLY JSON: {"score": <0-100>, "feedback": "<2-3 sentences>"}`
 
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 512,
-      messages: [{ role: 'user', content: prompt }],
-    }, { timeout: 30000 })
+  const response = await anthropic.messages.create({
+    model: 'claude-opus-4-6',
+    max_tokens: 512,
+    messages: [{ role: 'user', content: prompt }],
+  }, { timeout: 30000 })
 
-    const text = response.content[0].type === 'text' ? response.content[0].text : ''
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return null
+  const text = response.content[0].type === 'text' ? response.content[0].text : ''
+  const jsonMatch = text.match(/\{[\s\S]*?\}/)
+  if (!jsonMatch) throw new Error(`analyzeCopy: no JSON in response: ${text.slice(0, 200)}`)
 
-    return JSON.parse(jsonMatch[0])
-  } catch (err) {
-    console.error('AI copy analysis failed:', err)
-    return null
-  }
+  const parsed = JSON.parse(jsonMatch[0])
+  if (typeof parsed.score !== 'number') throw new Error(`analyzeCopy: missing score field: ${jsonMatch[0].slice(0, 200)}`)
+  return parsed
 }

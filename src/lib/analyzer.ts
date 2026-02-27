@@ -109,11 +109,10 @@ export async function analyzeUrl(
     // Run copy analysis after suggestions to avoid concurrent Anthropic proxy requests
     try {
       const copyAnalysis = await analyzeCopy(domData)
-      if (copyAnalysis) {
-        scores.copyScore = copyAnalysis.score
-      }
-    } catch (err) {
-      console.error('Copy analysis failed in analyzer:', err)
+      scores.copyScore = copyAnalysis.score
+    } catch (err: any) {
+      console.error('Copy analysis failed in analyzer:', err?.message || err)
+      ;(scores as any)._copyError = String(err?.message || err).slice(0, 500)
     }
 
     recalculateOverall(scores)

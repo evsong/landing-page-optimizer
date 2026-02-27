@@ -10,7 +10,7 @@ export const maxDuration = 300
 
 export async function POST(req: NextRequest) {
   try {
-    const { url } = await req.json()
+    const { url, force } = await req.json()
 
     if (!url || typeof url !== 'string') {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 })
@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Check 24h cache
-    if (userId) {
+    // Check 24h cache (skip if force=true)
+    if (userId && !force) {
       const cached = await prisma.analysisReport.findFirst({
         where: {
           url: parsedUrl.toString(),
