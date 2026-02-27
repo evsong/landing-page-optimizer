@@ -1,10 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk'
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-  baseURL: process.env.ANTHROPIC_BASE_URL || undefined,
-})
-
 interface DesignAnalysis {
   score: number
   colorHarmony: number
@@ -19,19 +12,25 @@ export async function analyzeDesign(screenshot: Buffer): Promise<DesignAnalysis 
   try {
     const base64 = screenshot.toString('base64')
 
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: 'image/png', data: base64 },
-          },
-          {
-            type: 'text',
-            text: `Analyze this landing page screenshot for visual design quality. Rate each dimension 0-100 and provide brief feedback.
+    const response = await fetch(process.env.ZHIPU_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.ZHIPU_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: process.env.ZHIPU_VISION_MODEL || 'glm-4.6v',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:image/png;base64,${base64}` },
+            },
+            {
+              type: 'text',
+              text: `Analyze this landing page screenshot for visual design quality. Rate each dimension 0-100 and provide brief feedback.
 
 Return ONLY valid JSON:
 {
@@ -42,21 +41,28 @@ Return ONLY valid JSON:
   "aesthetics": <0-100>,
   "feedback": "<2-3 sentence summary>"
 }`,
-          },
-        ],
-      }],
+            },
+          ],
+        }],
+      }),
     })
 
-    const text = response.content[0].type === 'text' ? response.content[0].text : ''
+    if (!response.ok) {
+      console.error('ZhipuAI Vision API error:', response.status, await response.text().catch(() => ''))
+      return null
+    }
+
+    const data = await response.json()
+    const text = data.choices?.[0]?.message?.content || ''
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) return null
 
-    const data = JSON.parse(jsonMatch[0])
+    const parsed = JSON.parse(jsonMatch[0])
     const score = Math.round(
-      (data.colorHarmony + data.typography + data.whitespace + data.visualHierarchy + data.aesthetics) / 5
+      (parsed.colorHarmony + parsed.typography + parsed.whitespace + parsed.visualHierarchy + parsed.aesthetics) / 5
     )
 
-    return { score, ...data }
+    return { score, ...parsed }
   } catch (err) {
     console.error('AI Vision failed:', err)
     return null

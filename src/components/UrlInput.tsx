@@ -19,6 +19,10 @@ export function UrlInput() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim() }),
       });
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        throw new Error("Analysis timed out or server error. Please try again.");
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Analysis failed");
       router.push(`/report/${data.reportId}`);
