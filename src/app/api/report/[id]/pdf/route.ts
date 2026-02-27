@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkPlanAccess } from '@/lib/plan-gating'
 import ReactPDF from '@react-pdf/renderer'
 import { ReportPdf } from '@/lib/pdf-template'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession()
+  const session = await getServerSession(authOptions)
   const userId = (session?.user as any)?.id
 
   if (!userId) {

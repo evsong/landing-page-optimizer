@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { analyzeUrl } from '@/lib/analyzer'
 import { prisma } from '@/lib/prisma'
 import { checkPlanAccess, incrementAnalysisCount } from '@/lib/plan-gating'
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
     }
 
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     const userId = (session?.user as any)?.id
     const plan = (session?.user as any)?.plan || 'FREE'
 

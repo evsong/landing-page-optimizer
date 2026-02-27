@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: 'Report not found' }, { status: 404 })
   }
 
-  const session = await getServerSession()
+  const session = await getServerSession(authOptions)
   const plan = (session?.user as any)?.plan || 'FREE'
 
   // Plan gating — FREE users get limited data
