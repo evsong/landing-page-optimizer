@@ -1,5 +1,5 @@
 import puppeteer, { Browser, Page } from 'puppeteer-core'
-import chromium from '@sparticuz/chromium-min'
+import chromium from '@sparticuz/chromium'
 import { runLighthouse } from './lighthouse'
 import { runPa11y } from './pa11y'
 import { extractDomData, DomData } from './dom-extractor'
@@ -32,7 +32,7 @@ async function launchBrowser(): Promise<Browser> {
     defaultViewport: { width: 1440, height: 900 },
     executablePath: isLocal
       ? process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-      : await chromium.executablePath('https://github.com/Sparticuz/chromium/releases/download/v133.0.0/chromium-v133.0.0-pack.tar'),
+      : await chromium.executablePath(),
     headless: true,
   })
 }
