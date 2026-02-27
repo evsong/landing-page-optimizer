@@ -39,7 +39,7 @@ Return ONLY a JSON array of 5-8 suggestions, prioritized by impact:
       model: 'claude-opus-4-6',
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
-    })
+    }, { timeout: 30000 })
 
     const text = response.content[0].type === 'text' ? response.content[0].text : ''
     const jsonMatch = text.match(/\[[\s\S]*\]/)
@@ -67,7 +67,7 @@ Return ONLY JSON: {"score": <0-100>, "feedback": "<2-3 sentences>"}`
       model: 'claude-opus-4-6',
       max_tokens: 512,
       messages: [{ role: 'user', content: prompt }],
-    })
+    }, { timeout: 30000 })
 
     const text = response.content[0].type === 'text' ? response.content[0].text : ''
     const jsonMatch = text.match(/\{[\s\S]*\}/)

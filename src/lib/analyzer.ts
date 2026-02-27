@@ -37,19 +37,26 @@ async function launchBrowser(): Promise<Browser> {
   })
 }
 
-export async function analyzeUrl(url: string): Promise<AnalysisResult> {
+export async function analyzeUrl(
+  url: string,
+  onProgress?: (step: string, progress: number) => void,
+): Promise<AnalysisResult> {
   let browser: Browser | null = null
+  const report = (step: string, progress: number) => onProgress?.(step, progress)
 
   try {
+    report('launching', 5)
     browser = await launchBrowser()
     const page = await browser.newPage()
 
     // Step 1: Load page with HAR capture
+    report('loading', 15)
     const harPromise = captureHar(page)
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 15000 })
     const finalUrl = page.url()
 
     // Step 2: Screenshots (desktop + mobile)
+    report('screenshots', 30)
     const screenshotDesktop = await page.screenshot({ fullPage: true, type: 'png' }) as Buffer
 
     await page.setViewport({ width: 375, height: 812 })
@@ -63,6 +70,7 @@ export async function analyzeUrl(url: string): Promise<AnalysisResult> {
     ])
 
     // Step 4: Lighthouse + Pa11y (parallel)
+    report('auditing', 50)
     const [lighthouseResult, pa11yResult] = await Promise.allSettled([
       runLighthouse(finalUrl, browser),
       runPa11y(finalUrl),
@@ -75,9 +83,11 @@ export async function analyzeUrl(url: string): Promise<AnalysisResult> {
     const harData = await harPromise
 
     // Step 6: Scoring
+    report('scoring', 65)
     const scores = computeScores(domData, lighthouseData, pa11yData, harData, extendedMetrics)
 
     // Step 7-8: AI analysis (parallel)
+    report('ai_analysis', 80)
     const [designResult, suggestionsResult] = await Promise.allSettled([
       analyzeDesign(screenshotDesktop),
       generateSuggestions(domData, scores),
@@ -99,6 +109,7 @@ export async function analyzeUrl(url: string): Promise<AnalysisResult> {
     }
 
     // Collect all issues
+    report('finalizing', 95)
     const issues = [
       ...scores.structureIssues,
       ...scores.conversionIssues,

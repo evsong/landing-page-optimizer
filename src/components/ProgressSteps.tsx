@@ -8,6 +8,21 @@ const steps = [
   { label: "Report", icon: FileText },
 ];
 
+// Map SSE step names to step index
+const stepMapping: Record<string, number> = {
+  launching: 0,
+  loading: 0,
+  screenshots: 0,
+  auditing: 1,
+  scoring: 1,
+  ai_analysis: 2,
+  finalizing: 3,
+};
+
+export function stepFromName(name: string): number {
+  return stepMapping[name] ?? 0;
+}
+
 export function ProgressSteps({ current }: { current: number }) {
   return (
     <div className="flex items-center justify-center gap-2">

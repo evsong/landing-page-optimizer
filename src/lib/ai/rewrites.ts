@@ -27,7 +27,7 @@ Return ONLY a JSON array:
       model: 'claude-opus-4-6',
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
-    })
+    }, { timeout: 30000 })
 
     const text = response.content[0].type === 'text' ? response.content[0].text : ''
     const jsonMatch = text.match(/\[[\s\S]*\]/)

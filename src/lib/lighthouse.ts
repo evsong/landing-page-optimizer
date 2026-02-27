@@ -24,6 +24,7 @@ export async function runLighthouse(url: string, browser: Browser): Promise<Ligh
       formFactor: 'desktop',
       screenEmulation: { disabled: true },
       throttling: { cpuSlowdownMultiplier: 1 },
+      maxWaitForLoad: 25000,
     })
 
     if (!result?.lhr) return null

@@ -18,6 +18,7 @@ export async function analyzeDesign(screenshot: Buffer): Promise<DesignAnalysis 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.ZHIPU_API_KEY}`,
       },
+      signal: AbortSignal.timeout(30000),
       body: JSON.stringify({
         model: process.env.ZHIPU_VISION_MODEL || 'glm-4.6v',
         max_tokens: 1024,

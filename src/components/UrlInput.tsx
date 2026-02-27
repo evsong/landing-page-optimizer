@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ProgressSteps, stepFromName } from "./ProgressSteps";
 
 export function UrlInput() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [currentStep, setCurrentStep] = useState(0);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -13,19 +15,62 @@ export function UrlInput() {
     if (!url.trim()) return;
     setLoading(true);
     setError("");
+    setCurrentStep(0);
+
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim() }),
       });
+
+      // Non-stream responses (cached, errors before stream starts)
       const contentType = res.headers.get("content-type") || "";
-      if (!contentType.includes("application/json")) {
+      if (contentType.includes("application/json")) {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Analysis failed");
+        router.push(`/report/${data.reportId}`);
+        return;
+      }
+
+      if (!contentType.includes("text/event-stream")) {
         throw new Error("Analysis timed out or server error. Please try again.");
       }
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Analysis failed");
-      router.push(`/report/${data.reportId}`);
+
+      // Consume SSE stream
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("Failed to read response stream");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.error) throw new Error(data.error);
+            if (data.done && data.reportId) {
+              router.push(`/report/${data.reportId}`);
+              return;
+            }
+            if (data.step) {
+              setCurrentStep(stepFromName(data.step));
+            }
+          } catch (parseErr: any) {
+            if (parseErr.message && parseErr.message !== "Unexpected end of JSON input") {
+              throw parseErr;
+            }
+          }
+        }
+      }
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
@@ -54,6 +99,11 @@ export function UrlInput() {
           {loading ? "Analyzing..." : "Analyze Free"}
         </button>
       </form>
+      {loading && (
+        <div className="mt-4">
+          <ProgressSteps current={currentStep} />
+        </div>
+      )}
       {error && <p className="mt-3 text-red-400 text-sm text-center">{error}</p>}
     </>
   );
