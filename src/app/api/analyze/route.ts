@@ -27,9 +27,9 @@ export async function POST(req: NextRequest) {
     const userId = (session?.user as any)?.id
     const plan = (session?.user as any)?.plan || 'FREE'
 
-    // Rate limit
+    // Rate limit (database-backed)
     const rateLimitKey = userId || req.headers.get('x-forwarded-for') || 'anonymous'
-    const rateLimit = checkRateLimit(rateLimitKey, userId ? plan : 'anonymous')
+    const rateLimit = await checkRateLimit(rateLimitKey, userId ? plan : 'anonymous')
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: 'Rate limit exceeded', resetAt: rateLimit.resetAt }, { status: 429 })
     }

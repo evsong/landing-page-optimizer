@@ -116,3 +116,14 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model RateLimit {
+  id          String   @id @default(cuid())
+  key         String
+  endpoint    String   @default("analyze")
+  count       Int      @default(1)
+  windowStart DateTime @default(now())
+
+  @@unique([key, endpoint])
+  @@index([windowStart])
+}

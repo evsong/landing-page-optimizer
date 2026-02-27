@@ -1,4 +1,4 @@
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+import { prisma } from './prisma'
 
 interface RateLimitConfig {
   maxRequests: number
@@ -6,26 +6,56 @@ interface RateLimitConfig {
 }
 
 const RATE_LIMITS: Record<string, RateLimitConfig> = {
-  FREE: { maxRequests: 3, windowMs: 30 * 24 * 60 * 60 * 1000 }, // 3/month
+  FREE: { maxRequests: 10, windowMs: 60 * 60 * 1000 }, // 10/hour
   PRO: { maxRequests: 60, windowMs: 60 * 60 * 1000 }, // 60/hour
   AGENCY: { maxRequests: 60, windowMs: 60 * 60 * 1000 }, // 60/hour
-  anonymous: { maxRequests: 1, windowMs: 24 * 60 * 60 * 1000 }, // 1/day
+  anonymous: { maxRequests: 3, windowMs: 24 * 60 * 60 * 1000 }, // 3/day
 }
 
-export function checkRateLimit(key: string, plan: string = 'anonymous'): { allowed: boolean; remaining: number; resetAt: number } {
+export async function checkRateLimit(
+  key: string,
+  plan: string = 'anonymous',
+  endpoint: string = 'analyze'
+): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
   const config = RATE_LIMITS[plan] || RATE_LIMITS.anonymous
-  const now = Date.now()
-  const entry = rateLimitMap.get(key)
+  const now = new Date()
 
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + config.windowMs })
-    return { allowed: true, remaining: config.maxRequests - 1, resetAt: now + config.windowMs }
+  const existing = await prisma.rateLimit.findUnique({
+    where: { key_endpoint: { key, endpoint } },
+  })
+
+  // No record or window expired → reset
+  if (!existing || now.getTime() - existing.windowStart.getTime() > config.windowMs) {
+    await prisma.rateLimit.upsert({
+      where: { key_endpoint: { key, endpoint } },
+      create: { key, endpoint, count: 1, windowStart: now },
+      update: { count: 1, windowStart: now },
+    })
+    return {
+      allowed: true,
+      remaining: config.maxRequests - 1,
+      resetAt: now.getTime() + config.windowMs,
+    }
   }
 
-  if (entry.count >= config.maxRequests) {
-    return { allowed: false, remaining: 0, resetAt: entry.resetAt }
+  // Within window, check limit
+  if (existing.count >= config.maxRequests) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: existing.windowStart.getTime() + config.windowMs,
+    }
   }
 
-  entry.count++
-  return { allowed: true, remaining: config.maxRequests - entry.count, resetAt: entry.resetAt }
+  // Increment
+  await prisma.rateLimit.update({
+    where: { key_endpoint: { key, endpoint } },
+    data: { count: { increment: 1 } },
+  })
+
+  return {
+    allowed: true,
+    remaining: config.maxRequests - existing.count - 1,
+    resetAt: existing.windowStart.getTime() + config.windowMs,
+  }
 }

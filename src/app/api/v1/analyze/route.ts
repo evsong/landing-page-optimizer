@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!checkApiRateLimit(user.id)) {
+  if (!(await checkApiRateLimit(user.id))) {
     return NextResponse.json({ error: 'Rate limit exceeded (10/min)' }, { status: 429 })
   }
 
